@@ -1,0 +1,1 @@
+[29-Jun-2025 01:42:40 UTC] PHP Fatal error:  Access level to App\Http\Controllers\WebinarController::uploadFile() must be public (as in class App\Http\Controllers\Controller) in /home/adaksior/apk-adaksi/app/Http/Controllers/WebinarController.php on line 138
