@@ -67,7 +67,9 @@
                                             </div>
 
                                             <div class="auth-title-section mb-4 text-lg-start text-center">
-                                                <h3 class="text-dark fw-semibold mb-3">Selamat Datang Kembali!</h3>
+                                                <h5 class="text-dark fw-semibold mb-3" align="center">Selamat Datang Kembali, Silakan Masukkan Akses yang Dikirim
+                                                    Lewat WA
+                                                </h5>
                                                 <!-- session alert -->
                                                 @if (session('success'))
                                                 <div class="alert alert-success">
@@ -81,14 +83,14 @@
                                                 @endif
                                             </div>
                                             <div class="pt-0">
-                                                <form action="{{ url('/login') }}" class="my-4" method="POST">
+                                                <form action="{{ url('/logindownload') }}" class="my-4" method="POST">
                                                     @csrf
                                                     <div class="form-group mb-3">
-                                                        <label for="emailaddress" class="form-label">Email
-                                                            address</label>
+                                                        <label for="emailaddress" class="form-label">Username
+                                                        </label>
                                                         <input class="form-control @error('email') is-invalid @enderror"
-                                                            type="email" id="emailaddress" name="email"
-                                                            placeholder="Enter your email" value="{{ old('email') }}">
+                                                            type="text" id="emailaddress" name="email"
+                                                            placeholder="Enter your username" value="{{ old('email') }}">
                                                         @error('email')
                                                         <div class="invalid-feedback">
                                                             {{ $message }}
@@ -97,22 +99,15 @@
                                                     </div>
 
                                                     <div class="form-group mb-3">
-                                                        <label for="password" class="form-label">Password</label>
-                                                        <input class="form-control @error('password') is-invalid @enderror"
-                                                            type="password" id="password" name="password"
-                                                            placeholder="Enter your password">
-                                                        @error('password')
+                                                        <label for="token" class="form-label">Token</label>
+                                                        <input class="form-control @error('token') is-invalid @enderror"
+                                                            type="token" id="token" name="token"
+                                                            placeholder="Enter your Token">
+                                                        @error('token')
                                                         <div class="invalid-feedback">
                                                             {{ $message }}
                                                         </div>
                                                         @enderror
-                                                    </div>
-
-                                                    <div class="form-group d-flex mb-3">
-                                                        <div class="col-sm-12 text-end">
-                                                            <a class='text-muted fs-14'
-                                                                href='/forget-password'>Forgot password?</a>
-                                                        </div>
                                                     </div>
 
                                                     <div class="form-group mb-0 row">
@@ -128,7 +123,7 @@
 
                                                 <div class="text-center text-muted">
                                                     <p class="mb-0">
-                                                        Belum punya akun?
+                                                        Belum Gabung ADAKSI?
                                                         <a class='text-primary fw-medium'
                                                             href='/daftar-anggota'>Daftar</a>
                                                     </p>

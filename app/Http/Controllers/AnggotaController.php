@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\NoAnggotaModel;
 use App\Models\AnggotaExport;
+use App\Models\PendaftarExtModel;
 use App\Models\RekapPerProvinsiExport;
 use App\Models\RekapGabunganExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -153,7 +154,7 @@ Telah terdaftar anggota calon baru di sistem ADAKSI yang menunggu proses validas
 📌 *Status Anggota:* Pending
         
 Mohon untuk segera melakukan validasi melalui halaman admin berikut:
-base_url: " . config('app.url') . "
+" . config('app.url') . "
 Silakan login menggunakan akun admin Anda.
             
 Terima kasih atas kerjasamanya.
@@ -197,38 +198,38 @@ Salam,
             }
 
             // Kirim pesan ke user
-            foreach ($users as $user) {
-                $curl = curl_init();
+            //foreach ($users as $user) {
+            $curl = curl_init();
 
-                curl_setopt_array($curl, array(
-                    CURLOPT_URL => 'https://api.fonnte.com/send',
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => '',
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 0,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_CUSTOMREQUEST => 'POST',
-                    CURLOPT_POSTFIELDS => array(
-                        'target' => $request->no_hp, // pastikan format nomor sudah internasional (62xxxxx)
-                        'message' => "Halo " . $request->nama_anggota . ",\n\n" .
-                            "Terima kasih telah mendaftar sebagai anggota ADAKSI. Akun Anda sedang dalam *proses validasi* oleh admin. Silakan tunggu dalam waktu maksimal 2x24 jam.\n\n" .
-                            "Jika ada pertanyaan, Anda dapat menghubungi admin melalui email atau nomor WhatsApp yang tertera di website.\n\n" .
-                            "Salam,\n*Sistem ADAKSI*",
-                    ),
-                    CURLOPT_HTTPHEADER => array(
-                        'Authorization: 5ef8QqtZQtmcBLfiWth5'
-                    ),
-                ));
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => 'https://api.fonnte.com/send',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => array(
+                    'target' => $request->no_hp, // pastikan format nomor sudah internasional (62xxxxx)
+                    'message' => "Halo " . $request->nama_anggota . ",\n\n" .
+                        "Terima kasih telah mendaftar sebagai anggota ADAKSI. Akun Anda sedang dalam *proses validasi* oleh admin. Silakan tunggu dalam waktu maksimal 2x24 jam.\n\n" .
+                        "Jika ada pertanyaan, Anda dapat menghubungi admin melalui email atau nomor WhatsApp yang tertera di website.\n\n" .
+                        "Salam,\n*Sistem ADAKSI*",
+                ),
+                CURLOPT_HTTPHEADER => array(
+                    'Authorization: 5ef8QqtZQtmcBLfiWth5'
+                ),
+            ));
 
-                $response = curl_exec($curl);
-                if (curl_errno($curl)) {
-                    $error_msg = curl_error($curl);
-                    // Jika error, log atau tampilkan
-                    \Log::error('WhatsApp API Error: ' . $error_msg);
-                }
-                curl_close($curl);
+            $response = curl_exec($curl);
+            if (curl_errno($curl)) {
+                $error_msg = curl_error($curl);
+                // Jika error, log atau tampilkan
+                \Log::error('WhatsApp API Error: ' . $error_msg);
             }
+            curl_close($curl);
+            // }
 
             return redirect()->back()->with('success', 'Pendaftaran calon anggota berhasil, periksa WA anda untuk update selanjutnya. Salam ADAKSI!');
         } catch (\Exception $e) {
@@ -246,12 +247,10 @@ Salam,
             ->when($request->search, function ($query) use ($request) {
                 $query->where(function ($q) use ($request) {
                     $q->where('nama_anggota', 'like', '%' . $request->search . '%')
-                      ->orWhere('nip_nipppk', 'like', '%' . $request->search . '%')
-                      ->orWhere('no_hp', 'like', '%' . $request->search . '%')
-                      ->orWhere('email', 'like', '%' . $request->search . '%');
+                        ->orWhere('nip_nipppk', 'like', '%' . $request->search . '%')
+                        ->orWhere('no_hp', 'like', '%' . $request->search . '%')
+                        ->orWhere('email', 'like', '%' . $request->search . '%');
                 });
-            
-
             })
             ->when($request->status_anggota, function ($query) use ($request) {
                 $query->where('status_anggota', $request->status_anggota);
@@ -272,12 +271,10 @@ Salam,
             ->when($request->search, function ($query) use ($request) {
                 $query->where(function ($q) use ($request) {
                     $q->where('nama_anggota', 'like', '%' . $request->search . '%')
-                      ->orWhere('nip_nipppk', 'like', '%' . $request->search . '%')
-                      ->orWhere('no_hp', 'like', '%' . $request->search . '%')
-                      ->orWhere('email', 'like', '%' . $request->search . '%');
+                        ->orWhere('nip_nipppk', 'like', '%' . $request->search . '%')
+                        ->orWhere('no_hp', 'like', '%' . $request->search . '%')
+                        ->orWhere('email', 'like', '%' . $request->search . '%');
                 });
-            
-
             })
             ->when($request->status_anggota, function ($query) use ($request) {
                 $query->where('status_anggota', $request->status_anggota);
@@ -289,24 +286,6 @@ Salam,
 
         return view('admin_page.calonanggota.index', compact('calon'));
     }
-    
-    public function showAllWebinar(Request $request)
-    {
-        $webinar = WebinarModel::when($request->search, function ($query) use ($request) {
-            $query->where(function ($q) use ($request) {
-                $q->where('judul', 'like', '%' . $request->search . '%')
-                  ->orWhere('tanggal_mulai', 'like', '%' . $request->search . '%')
-                  ->orWhere('moderator', 'like', '%' . $request->search . '%')
-                  ->orWhere('hari', 'like', '%' . $request->search . '%');
-            });
-        })
-        ->orderBy('tanggal_mulai', 'desc')
-        ->paginate(10);
-    
-        return view('admin_page.webinar.index', compact('webinar'));
-    }
-    
-  
 
     //import anggota
     public function ImportAnggota()
@@ -371,7 +350,7 @@ Salam,
             'end_date' => $end->format('Y-m-d'),
         ]);
     }
-    
+
 
     public function tampilAnggota(Request $request)
     {
@@ -431,12 +410,12 @@ Salam,
             'id_anggota' => 'required|integer|exists:anggota,id_anggota',
             'nama_anggota' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id_user . ',id_user',
-           // 'nip_nipppk' => 'nullable|string|max:50|unique:anggota,nip_nipppk,' . $anggota->id_anggota . ',id_anggota',
+            // 'nip_nipppk' => 'nullable|string|max:50|unique:anggota,nip_nipppk,' . $anggota->id_anggota . ',id_anggota',
             'no_hp' => 'required|string|max:20',
             'status_dosen' => 'required|string',
             'homebase_pt' => 'required|string|max:100',
             'provinsi' => 'required|string|max:100',
-           // 'keterangan' => 'string|max:255',
+            // 'keterangan' => 'string|max:255',
         ]);
         try {
             $user->update(['email' => $request->email]);
@@ -466,7 +445,7 @@ Salam,
     {
 
         // get anggota order no urut desc
-     /* $anggota_urut = AnggotaModel::orderBy('no_urut', 'desc')
+        /* $anggota_urut = AnggotaModel::orderBy('no_urut', 'desc')
             ->first();
         if (!$anggota_urut) {
             $no_urut = 1; // jika tidak ada anggota, mulai dari 1
@@ -497,22 +476,22 @@ Salam,
         $anggota->id_card = $id_card;
         $anggota->save();
         $anggota_user = User::findOrFail($anggota->id_user);*/
-        
-        
-        
+
+
+
         $idCardTersedia = NoAnggotaModel::orderBy('id_card', 'asc')->first();
 
         if ($idCardTersedia) {
             // Gunakan id_card dari no_anggota dan ambil 6 digit terakhir untuk no_urut
             $id_card = $idCardTersedia->id_card;
             $no_urut = (int)substr($id_card, -6);
-    
+
             // Hapus data id_card dari tabel no_anggota setelah digunakan
             $idCardTersedia->delete();
         } else {
             // Jika tidak ada lagi id_card tersisa di tabel no_anggota
             $anggota_urut = AnggotaModel::orderBy('id_card', 'desc')->first();
-    
+
             if (!$anggota_urut) {
                 $no_urut = 1;
             } else {
@@ -521,7 +500,7 @@ Salam,
                 $last_no = (int)substr($last_id_card, -6);
                 $no_urut = $last_no + 1;
             }
-    
+
             // Format ID Card (6 digit belakang)
             if ($no_urut < 10) {
                 $id_card = '0000' . $no_urut;
@@ -536,17 +515,17 @@ Salam,
             } else {
                 $id_card = (string)$no_urut;
             }
-    
+
             $id_card = '00119' . $id_card; // Tambahkan prefix
         }
-    
+
         // Simpan ke data anggota
         $anggota = AnggotaModel::findOrFail($id);
         $anggota->status_anggota = $request->status_anggota;
         $anggota->no_urut = $no_urut;
         $anggota->id_card = $id_card;
         $anggota->save();
-    
+
         $anggota_user = User::findOrFail($anggota->id_user);
 
 
@@ -616,7 +595,7 @@ Salam,
         $anggota_user->save();
 
         // notify()->success('Anggota berhasil divalidasi dan notifikasi telah dikirim ke semua admin.');
-        return redirect('/admin/calonanggota')->with('success', 'Validasi anggota berhasil dilakukan!');
+        return redirect('/admin/calonanggota')->with('Validasi anggota berhasil dilakukan!');
         //return redirect()->back();
     }
 
@@ -745,12 +724,12 @@ Salam,
             return redirect()->back()->withInput()->with('error', 'Failed to update password: ' . $e->getMessage());
         }
     }
-    
+
     public function export()
     {
         return Excel::download(new AnggotaExport, 'data-anggota.xlsx');
     }
-    
+
     public function TabulasiAnggota()
     {
         // Ambil data: grup berdasarkan provinsi dan homebase_pt
@@ -761,7 +740,7 @@ Salam,
             ->orderBy('provinsi')
             ->orderBy('homebase_pt')
             ->get();
-    
+
         // Kelompokkan berdasarkan provinsi
         $grouped = [];
         foreach ($data as $row) {
@@ -769,24 +748,217 @@ Salam,
                 'pt' => $row->homebase_pt,
                 'jumlah' => $row->jumlah
             ];
-            $grouped[$row->provinsi]['subtotal'] = 
+            $grouped[$row->provinsi]['subtotal'] =
                 ($grouped[$row->provinsi]['subtotal'] ?? 0) + $row->jumlah;
         }
-    
+
         return view('admin_page.tabulasi.index', compact('grouped'));
     }
-    
 
 
     public function exportRekapPerProvinsi()
     {
         return Excel::download(new RekapPerProvinsiExport, 'rekap-per-provinsi.xlsx');
     }
-    
+
     public function exportGabungan()
     {
         return Excel::download(new RekapGabunganExport, 'rekap-adaksi.xlsx');
     }
 
+    public function webinar(Request $request)
+    {
+        // Ambil status anggota user (aktif/nonaktif) dari tabel anggota
+        // Ambil email & no_hp user yang sedang login
+        $user = Auth::user();
+        $email = $user->email ?? null;
+        $no_hp = $user->no_hp ?? null;
+
+        // Ambil id_wb yang sudah terdaftar dengan email / no_hp user ini
+        $webinar_terdaftar = DB::table('pendaftar_webinar_ext')
+            ->where(function ($query) use ($email, $no_hp) {
+                $query->where('email', $email)
+                    ->orWhere('no_hp', $no_hp);
+            })
+            ->pluck('id_wb')
+            ->unique()
+            ->toArray();
+
+        $status_anggota = DB::table('anggota')
+            ->where('id_user', $user->id_user)
+            ->value('status_anggota');
+
+      
+        // Tentukan tipe biaya yang akan digunakan berdasarkan status anggota
+        $biaya_tipe = ($status_anggota === 'aktif') ? 'biaya_anggota_aktif' : 'biaya_anggota_non_aktif';
+
+        $webinar = WebinarModel::with('fasilitas')
+            ->select(
+                'id_wb',
+                'judul',
+                $biaya_tipe . ' as biaya',
+                'deskripsi',
+                'hari',
+                'tanggal_mulai',
+                'tanggal_selesai',
+                'pukul',
+                'sertifikat_depan',
+                'sertifikat_belakang',
+                'link_zoom',
+                'bayar_free',
+                'moderator',
+                'flyer',
+                'status'
+            )
+            ->when($request->search, function ($query) use ($request) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('judul', 'like', '%' . $request->search . '%')
+                        ->orWhere('tanggal_mulai', 'like', '%' . $request->search . '%')
+                        ->orWhere('moderator', 'like', '%' . $request->search . '%')
+                        ->orWhere('hari', 'like', '%' . $request->search . '%');
+                });
+            })
+            ->where('status', '!=', 'draft')
+            // ->where($biaya_tipe, '>', 0) // hanya ambil data yang memiliki biaya
+            ->orderBy('tanggal_mulai', 'desc')
+            ->paginate(10);
+
+        $webinar->getCollection()->transform(function ($item) {
+            $kode_unik = rand(100, 999);
+            $item->biaya_unik = ($item->biaya ?? 0) + $kode_unik;
+            return $item;
+        });
+
+        return view('anggota_page.webinar.index', compact('webinar', 'webinar_terdaftar', 'biaya_tipe'));
+    }
+
+    public function uploadFilePendaftar($file, $path, $prefix = '')
+    {
+        $filename = $prefix . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+        // Ganti dengan path absolut sesuai lokasi sebenarnya
+        $destination = base_path('public/' . $path); // sesuaikan jika Laravel di luar public_html
+
+        if (!file_exists($destination)) {
+            mkdir($destination, 0755, true);
+        }
+
+        try {
+            $file->move($destination, $filename);
+        } catch (\Exception $e) {
+            dd('Gagal simpan file: ' . $e->getMessage());
+        }
+
+        return $filename;
+    }
+
+    public function store_registrasi_anggota(Request $request)
+    {
+        $messages = [
+            'keterangan.required' => 'Wajib diisi.',
+            'keterangan.string' => 'Harus berupa teks.',
+            'keterangan.max' => 'Maksimal 250 karakter.',
+
+            'bukti_transfer.required' => 'Bukti transfer wajib diunggah.',
+            'bukti_transfer.file' => 'Bukti transfer harus berupa file.',
+            'bukti_transfer.mimes' => 'Bukti transfer harus berupa file JPG, JPEG, PNG, atau PDF.',
+            'bukti_transfer.max' => 'Ukuran bukti transfer maksimal 2MB.',
+        ];
+
+        $request->validate([
+            'keterangan' => 'required|string|max:255',
+            'bukti_transfer' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ], $messages);
+
+        try {
+            $id_wb = $request->id_wb;
+            $biaya = $request->biaya;
+            $keterangan = $request->keterangan;
+            $id_user = $request->id_user ?? Auth::id(); // fallback jika id_user belum dikirim
+
+            // Ambil data user + anggota
+            $data = DB::table('users')
+                ->join('anggota', 'users.id_user', '=', 'anggota.id_user')
+                ->select(
+                    'anggota.nama_anggota',
+                    'users.email',
+                    'users.no_hp',
+                    'anggota.nip_nipppk',
+                    'anggota.status_dosen',
+                    'anggota.homebase_pt',
+                    'anggota.provinsi'
+                )
+                ->where('users.id_user', $id_user)
+                ->first();
+
+            if (!$data) {
+                return back()->with('error', 'Data user/anggota tidak ditemukan.');
+            }
+
+            // Ambil data webinar untuk validasi keberadaan
+            $webinar = WebinarModel::findOrFail($id_wb);
+
+            // Upload file bukti transfer
+            $bukti_tf_path = null;
+            if ($request->hasFile('bukti_transfer')) {
+                $bukti_tf_path = $this->uploadFilePendaftar(
+                    $request->file('bukti_transfer'),
+                    'uploads/bukti_tf_pendaftaran'
+                );
+            }
+
+            // Simpan ke PendaftarExtModel
+            PendaftarExtModel::create([
+                'id_wb' => $id_wb,
+                'nama' => $data->nama_anggota ?? '-',
+                'email' => $data->email ?? '-',
+                'no_hp' => $data->no_hp ?? '-',
+                'nip' => $data->nip_nipppk ?? '-',
+                'status' => $data->status_dosen ?? '-',
+                'home_base' => $data->homebase_pt ?? '-',
+                'provinsi' => $data->provinsi ?? '-',
+                'keterangan' => $keterangan,
+                'bukti_tf' => $bukti_tf_path,
+                'token' => null,
+                'biaya' => $biaya ?? 0,
+            ]);
+
+            // Kirim pesan ke user
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => 'https://api.fonnte.com/send',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => array(
+                    'target' => $data->no_hp, // pastikan format nomor sudah internasional (62xxxxx)
+                    'message' => "Halo " . $data->nama_anggota . "👋,\n\n" .
+                        "Terima kasih telah mendaftar *" . $webinar->judul . "*" .
+                        ". Pendaftaran Anda sedang dalam *proses validasi* oleh admin. Silakan tunggu dalam waktu maksimal *2x24* jam.\n\n" .
+                        "Jika ada pertanyaan, Anda dapat menghubungi admin melalui email atau nomor WhatsApp yang tertera di website.\n\n" .
+                        "Salam,\n*Sistem ADAKSI*",
+                ),
+                CURLOPT_HTTPHEADER => array(
+                    'Authorization: 5ef8QqtZQtmcBLfiWth5'
+                ),
+            ));
+
+            $response = curl_exec($curl);
+            if (curl_errno($curl)) {
+                $error_msg = curl_error($curl);
+                // Jika error, log atau tampilkan
+                \Log::error('WhatsApp API Error: ' . $error_msg);
+            }
+            curl_close($curl);
+
+            return redirect()->back()->with('success', 'Pendaftaran kegiatan berhasil, periksa WA anda untuk update selanjutnya. Salam ADAKSI!');
+        } catch (\Exception $e) {
+            \Log::error('Error Pendaftaran Webinar: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat pendaftaran: ' . $e->getMessage());
+        }
+    }
 }
- 

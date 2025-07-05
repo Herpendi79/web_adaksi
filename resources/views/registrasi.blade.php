@@ -5,7 +5,7 @@
 
     <meta charset="utf-8" />
     <title>
-        {{ config('app.name', 'Laravel') }} - Daftar Anggota
+        {{ config('app.name', 'Laravel') }} - Registrasi
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ADAKSI" />
@@ -118,19 +118,19 @@
                                     class="img-fluid mb-3" style="max-width: 150px; display: block; margin: 0 auto;">
 
                             </div>
-                            <h4 class="card-title text-center">Form Pendataan Anggota Tetap ADAKSI
+                            <h4 class="card-title text-center">FORM REGISTRASI
                             </h4>
-                          <p class="card-title-desc text-center"> Panduan cara pendaftaran dapat dilihat pada video berikut: 
-                                <strong><a href="https://youtu.be/MjG9OuX2mvE" target="blank">Klik disini</a></strong></p>
+                          <p class="card-title-desc text-center"><strong>{{ $registrasi->judul }}</strong> 
+                            </p>
                         </div>
-
-                        <form action="{{ url('anggota/daftar') }}" method="POST" enctype="multipart/form-data">
+encty
+                        <form action="{{ route('store_registrasi') }}" method="POST" pe="multipart/form-data">
                             @csrf
 
                             {{-- Nama Lengkap --}}
                             <div class="mb-3">
                                 <label for="nama" class="form-label m-0">Nama Lengkap</label>
-                                <p class="text-muted mb-1" style="font-size: 0.775rem;">Nama Lengkap dengan gelar</p>
+                                <p class="text-muted mb-1" style="font-size: 0.775rem;">Nama Lengkap dengan gelar (pastikan benar untuk penulisan di Sertifikat)</p>
                                 <input type="text" class="form-control @error('nama_anggota') is-invalid @enderror"
                                     id="nama" name="nama_anggota" placeholder="Masukkan nama lengkap Anda"
                                     value="{{ old('nama_anggota') }}">
@@ -144,8 +144,7 @@
                             {{-- Email --}}
                             <div class="mb-3">
                                 <label for="email" class="form-label m-0">Email</label>
-                                <p class="text-muted mb-1" style="font-size: 0.775rem;">Email yang valid untuk
-                                    pengiriman informasi</p>
+                                <p class="text-muted mb-1" style="font-size: 0.775rem;">Email yang valid untuk akses download Sertifikat & Fasilitas lainnya</p>
                                 <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email"
                                     placeholder="Masukkan email Anda" value="{{ old('email') }}">
                                 @error('email')
@@ -158,9 +157,9 @@
                             <div class="row">
                                 {{-- NIP/NIPPPK --}}
                                 <div class="mb-3 col-md-6">
-                                    <label for="nip_nippk" class="form-label mb-1">NIP/NIPPPK</label>
+                                    <label for="nip_nippk" class="form-label mb-1">NIP/NIPPPK/NIDN/NIK</label>
                                     <input type="tel" class="form-control @error('nip_nipppk') is-invalid @enderror" id="nip_nippk" name="nip_nipppk"
-                                        placeholder="Masukkan NIP/NIPPPK Anda" value="{{ old('nip_nipppk') }}">
+                                        placeholder="Masukkan NIP/NIPPPK/NIDN/NIK Anda" value="{{ old('nip_nipppk') }}">
                                     @error('nip_nipppk')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -189,6 +188,7 @@
                                         <option value="" disabled selected>-- Pilih status dosen Anda --</option>
                                         <option value="Dosen PTN">Dosen PTN</option>
                                         <option value="Dosen DPK">Dosen DPK</option>
+                                        <option value="Dosen DPK">Non Dosen</option>
                                     </select>
                                     @error('status_dosen')
                                     <div class="invalid-feedback">
@@ -199,9 +199,9 @@
 
                                 {{-- Homebase PT --}}
                                 <div class="mb-3 col-md-6">
-                                    <label for="homebase_pt" class="form-label mb-1">Homebase PT</label>
+                                    <label for="homebase_pt" class="form-label mb-1">Homebase PT / Instansi</label>
                                     <input type="text" class="form-control @error('homebase_pt') is-invalid @enderror" id="homebase_pt" name="homebase_pt"
-                                        placeholder="Masukkan nama PT Anda" value="{{ old('homebase_pt') }}">
+                                        placeholder="Masukkan nama PT / Instansi Anda" value="{{ old('homebase_pt') }}">
                                     @error('homebase_pt')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -270,6 +270,18 @@
                                 </div>
                                 @enderror
                             </div>
+                            
+                            {{-- Keterangan Rekening Pengirim --}}
+                                <div class="mb-3">
+                                    <label for="keterangan" class="form-label mb-1">Informasi Rekening Pengirim</label>
+                                    <input type="text" class="form-control @error('keterangan') is-invalid @enderror" id="keterangan" name="keterangan"
+                                        placeholder="Misal: Budi Karya - BRI 03178261829256" value="{{ old('keterangan') }}">
+                                    @error('keterangan')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                    @enderror
+                                </div>
 
                             {{-- Bukti Transfer --}}
                             <div class="mb-3">
@@ -278,9 +290,11 @@
                                     class="form-control @error('bukti_transfer') is-invalid @enderror"
                                     id="bukti_transfer"
                                     name="bukti_transfer">
+                                <input type="hidden" name="id_wb" value="{{ $id_wb }}">
+                                <input type="hidden" name="biaya" value="{{ $total_bayar }}">
                                 <br>
-                                 <small class="form-text text-danger">
-                                    *Transfer senilai <strong class="text-success">Rp 100.{{ number_format($kode_unik, 0, ',', '.') }}</strong> (pastikan persis hingga 3 digit terakhir)
+                                <small class="form-text text-danger">
+                                    *Transfer senilai <strong class="text-success">Rp{{ number_format($total_bayar, 0, ',', '.') }}</strong> (pastikan persis hingga 3 digit terakhir)
                                 </small><br>
                                 <small class="form-text text-danger">
                                     *Transfer ke <strong class="text-success">312601035654536</strong> , Rek BRI, a.n <strong class="text-success">Nindya Adiasti</strong> (Bendahara DPP ADAKSI)
@@ -293,8 +307,7 @@
                                 @enderror
                             </div>
 
-
-                            <button type="submit" class="btn btn-dark w-100">Daftar Anggota</button>
+                            <button type="submit" class="btn btn-dark w-100">Daftar</button>
                             <a href="{{ url('/') }}" class="btn btn-light w-100 mt-2">Kembali</a>
                         </form>
                     </div>

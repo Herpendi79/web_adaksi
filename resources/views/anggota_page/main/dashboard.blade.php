@@ -36,7 +36,7 @@
                 </a>
             </div>
             <div class="col-md-6 mb-3">
-                <a href="/anggota/download-kta" class="card text-decoration-none text-dark h-100">
+                <a href="/anggota/download-kta" class="card text-decoration-none text-dark h-100" target="_blank">
                     <div class="card-body d-flex align-items-center">
                         <i class="bi bi-card-heading fs-2 me-3"></i>
                         <div>

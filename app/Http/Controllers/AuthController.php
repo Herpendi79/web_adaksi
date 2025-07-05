@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 
 use App\Models\AnggotaModel;
 use App\Models\User;
+use App\Models\PendaftarExtModel;
 
 class AuthController extends Controller
 {
@@ -123,7 +124,7 @@ Salam,
             return redirect('/login')->with('success', 'Permintaan reset password berhasil. Silakan cek WhatsApp Anda untuk mendapatkan password baru.');
         }
     }
-    
+
     //setting password admin
     public function setting()
     {
@@ -135,5 +136,34 @@ Salam,
     {
         Auth::logout();
         return redirect('/login')->with('success', 'Anda telah berhasil keluar.');
+    }
+    public function logindownload(Request $request)
+    {
+        if ($request->isMethod('get')) {
+            return view('download');
+        } elseif ($request->isMethod('post')) {
+            $request->validate([
+                'email' => 'required|email',
+                'token' => 'required|min:6',
+            ]);
+            $credentials = $request->only('email', 'token');
+            if (Auth::attempt($credentials)) {
+                $getAnggota = PendaftarExtModel::where('email', $request->email)
+                    ->orwhere('token', $request->token)
+                    ->first();
+                if (!$getAnggota) {
+                    return redirect()->back()->withErrors([
+                        'Anda tidak memiliki akses',
+                    ]);
+                } else {
+
+                    return redirect()->intended('anggota/dashboard');
+                }
+            }
+        } else {
+            return redirect()->back()->withErrors([
+                'email' => 'The provided credentials do not match our records.',
+            ]);
+        }
     }
 }

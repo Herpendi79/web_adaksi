@@ -27,12 +27,13 @@ class WebinarModel extends Model
         'status'
     ];
     public $timestamps = true;
-    
+
     public function fasilitas()
     {
         return $this->hasMany(FasilitasModel::class, 'id_wb', 'id_wb');
     }
-
-    
-
+    public function pendaftar()
+    {
+        return $this->hasMany(PendaftarExtModel::class, 'id_wb', 'id_wb');
+    }
 }

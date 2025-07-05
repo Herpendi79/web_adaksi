@@ -59,17 +59,13 @@ Route::prefix('admin')
                 Route::get('create', 'create')->name('webinar.create');
                 Route::post('/admin/webinar', [WebinarController::class, 'store'])->name('webinar.store');
                 Route::post('publish/{id}', 'publish')->where('id', '[0-9]+');
-                // Route::get('edit','edit/{id}')->name('webinar.edit');
-                // Route::get('edit/{id}', 'edit')->name('webinar.edit');
+                Route::post('selesai/{id}', 'selesai')->where('id', '[0-9]+');
                 Route::get('edit/{id}', 'edit')->name('admin.webinar.edit');
-                // Route::get('ubah/{id_wb}', 'ubah')->name('admin.webinar.ubah');
-                // Route::get('edit/{id}', 'edit')->where('id', '[0-9]+');
-                //Route::get('/admin/webinar/edit/{id}', [WebinarController::class, 'edit'])->name('webinar.edit');
-
                 Route::put('admin/webinar/{id}', [WebinarController::class, 'update'])->name('webinar.update');
                 Route::get('/admin/webinar', [WebinarController::class, 'showAllWebinar'])->name('webinar.index');
-
+                Route::get('pendaftar/{id}', [WebinarController::class, 'pendaftar'])->name('webinar.pendaftar');
                 Route::post('validasi/{id}', 'validasi')->where('id', '[0-9]+');
+                Route::post('validasiPendaftar/{id}', 'validasiPendaftar')->where('id', '[0-9]+');
             });
 
         Route::prefix('calonanggota')

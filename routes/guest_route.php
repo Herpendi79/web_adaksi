@@ -9,13 +9,13 @@ Route::get('/', function () {
 });
 
 Route::get('/real-daftar-anggota', function () {
-  return view('guest_page.real_anggota_daftar_form');
-  //  return view('guest_page.anggota_daftar_form');
+    return view('guest_page.real_anggota_daftar_form');
+    //  return view('guest_page.anggota_daftar_form');
 });
 
-Route::get('/daftar-anggota', function () {
-    return view('guest_page.anggota_daftar_form');
-});
+Route::get('/daftar-anggota', [WebinarController::class, 'daftar'])->name('daftar');
+
+Route::get('/registrasi/{id}', [WebinarController::class, 'registrasi'])->name('registrasi');
 
 Route::get('/login', function () {
     return view('auth.login');
@@ -23,6 +23,9 @@ Route::get('/login', function () {
 
 
 Route::get('/webinar', [WebinarController::class, 'index'])->name('webinar.index');
+
+Route::get('/agenda/{id}', [WebinarController::class, 'agenda'])->name('agenda');
+
 
 Route::get('/about', function () {
     return view('guest_page.about');
@@ -77,8 +80,18 @@ Route::get('/implementasi-permen', function () {
 });
 
 
-Route::prefix('anggota')
-->controller(AnggotaController::class)
-->group(function () {
-    Route::post('/daftar', 'store')->name('anggota.store');
+
+Route::post('/registrasi', [WebinarController::class, 'store_registrasi'])->name('store_registrasi');
+Route::get('/download', function () {
+    return view('download');
 });
+
+
+
+
+
+Route::prefix('anggota')
+    ->controller(AnggotaController::class)
+    ->group(function () {
+        Route::post('/daftar', 'store')->name('anggota.store');
+    });
