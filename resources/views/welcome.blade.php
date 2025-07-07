@@ -77,7 +77,7 @@
 
     <!-- Menu Navigation
 ================================================== -->
-    <div class="navigation-wrap start-header start-style">
+  <div class="navigation-wrap start-header start-style">
         <nav class="navbar navbar-expand-lg">
             <div class="container">
 
@@ -183,6 +183,12 @@
                                 href="{{ url('login') }}"
                                 alt="Daftar Anggota">Login</a>
                         </li>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3 ml-2 btn btn-dark text-white"
+                                href="{{ url('fasilitas') }}" target="_blank"
+                                alt="Sertifikat">Sertifikat</a>
+                        </li>
 
                     </ul>
                 </div>
@@ -190,6 +196,7 @@
             </div>
         </nav>
     </div>
+
 
 
     <!-- Container

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AnggotaController;
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebinarController;
 
@@ -20,6 +21,19 @@ Route::get('/registrasi/{id}', [WebinarController::class, 'registrasi'])->name('
 Route::get('/login', function () {
     return view('auth.login');
 });
+
+
+Route::get('/fasilitas', function () {
+    return view('fasilitas');
+});
+
+Route::post('/fasilitas', [AuthController::class, 'fasilitas'])->name('fasilitas');
+
+Route::get('/fasilitas/result', [AuthController::class, 'fasilitasResult'])->name('fasilitas.result');
+
+Route::get('/fasilitas/sertifikat/{id}', [AuthController::class, 'fasilitasSertifikat'])->name('fasilitas.sertifikat');
+
+Route::post('/fasilitas/clear', [AuthController::class, 'clearSession'])->name('fasilitas.clear');
 
 
 Route::get('/webinar', [WebinarController::class, 'index'])->name('webinar.index');
@@ -82,12 +96,6 @@ Route::get('/implementasi-permen', function () {
 
 
 Route::post('/registrasi', [WebinarController::class, 'store_registrasi'])->name('store_registrasi');
-Route::get('/download', function () {
-    return view('download');
-});
-
-
-
 
 
 Route::prefix('anggota')

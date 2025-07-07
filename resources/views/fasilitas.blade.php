@@ -8,7 +8,7 @@
         @if (isset($title))
         {{ $title }} - {{ config('app.name') }}
         @else
-        Masuk - {{ config('app.name') }}
+        {{ config('app.name') }}
         @endif
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -67,8 +67,10 @@
                                             </div>
 
                                             <div class="auth-title-section mb-4 text-lg-start text-center">
-                                                <h5 class="text-dark fw-semibold mb-3" align="center">Selamat Datang Kembali, Silakan Masukkan Akses yang Dikirim
-                                                    Lewat WA
+                                                <h4 class="text-dark fw-semibold mb-3" align="center">-- FORM AKSES NON ADAKSI --
+                                                </h4>
+                                                <h5 class="text-dark fw-semibold mb-3" align="center">Silakan Masukkan Akses yang Dikirim
+                                                    Lewat WA untuk Download Sertifikat dan Lainnya
                                                 </h5>
                                                 <!-- session alert -->
                                                 @if (session('success'))
@@ -83,7 +85,7 @@
                                                 @endif
                                             </div>
                                             <div class="pt-0">
-                                                <form action="{{ url('/logindownload') }}" class="my-4" method="POST">
+                                                <form action="{{ url('/fasilitas') }}" class="my-4" method="POST">
                                                     @csrf
                                                     <div class="form-group mb-3">
                                                         <label for="emailaddress" class="form-label">Username

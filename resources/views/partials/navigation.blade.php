@@ -104,6 +104,12 @@
                                 href="{{ url('login') }}"
                                 alt="Daftar Anggota">Login</a>
                         </li>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3 ml-2 btn btn-dark text-white"
+                                href="{{ url('fasilitas') }}" target="_blank"
+                                alt="Sertifikat">Sertifikat</a>
+                        </li>
 
                     </ul>
                 </div>

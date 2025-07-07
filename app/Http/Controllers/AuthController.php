@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 use App\Models\AnggotaModel;
+use App\Models\WebinarModel;
 use App\Models\User;
 use App\Models\PendaftarExtModel;
+use App\Models\FasilitasModel;
 
 class AuthController extends Controller
 {
@@ -137,33 +139,55 @@ Salam,
         Auth::logout();
         return redirect('/login')->with('success', 'Anda telah berhasil keluar.');
     }
-    public function logindownload(Request $request)
-    {
-        if ($request->isMethod('get')) {
-            return view('download');
-        } elseif ($request->isMethod('post')) {
-            $request->validate([
-                'email' => 'required|email',
-                'token' => 'required|min:6',
-            ]);
-            $credentials = $request->only('email', 'token');
-            if (Auth::attempt($credentials)) {
-                $getAnggota = PendaftarExtModel::where('email', $request->email)
-                    ->orwhere('token', $request->token)
-                    ->first();
-                if (!$getAnggota) {
-                    return redirect()->back()->withErrors([
-                        'Anda tidak memiliki akses',
-                    ]);
-                } else {
 
-                    return redirect()->intended('anggota/dashboard');
-                }
-            }
-        } else {
-            return redirect()->back()->withErrors([
-                'email' => 'The provided credentials do not match our records.',
+    public function fasilitas(Request $request)
+    {
+        $email = $request->input('email');
+        $token = $request->input('token');
+
+        $pendaftar = PendaftarExtModel::with('webinar')
+            ->where('email', $email)
+            ->where('token', $token)
+            ->first();
+
+        if (!$pendaftar) {
+            return redirect()->route('fasilitas')->withErrors([
+                'email' => 'Email atau token tidak valid.',
             ]);
         }
+
+        $id_wb = $pendaftar->id_wb;
+        $fasilitas = FasilitasModel::where('id_wb', $id_wb)->get();
+
+        session()->put('pendaftar', $pendaftar);
+        session()->put('fasilitas', $fasilitas);
+
+        return redirect()->route('fasilitas.result');
     }
+
+    public function fasilitasResult()
+    {
+        if (!session()->has('pendaftar') || !session()->has('fasilitas')) {
+            return redirect()->route('fasilitas');
+        }
+
+        $pendaftar = session('pendaftar');
+        $fasilitas = session('fasilitas');
+
+        return view('guest_page.fasilitas_download', compact('pendaftar', 'fasilitas'));
+    }
+
+    public function fasilitasSertifikat($id){
+
+        $webinar = WebinarModel::with('pendaftar')->findOrFail($id);
+
+        return view('components.sertifikat', compact('webinar'));
+
+    }
+
+    public function clearSession()
+{
+    session()->forget(['pendaftar', 'fasilitas']);
+    return redirect('/daftar-anggota');
+}
 }

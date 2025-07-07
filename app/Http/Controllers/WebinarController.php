@@ -699,4 +699,12 @@ Salam,
         return view('download', compact('webinar'));
 
     }
+
+     public function showFasilitasAkses(){
+
+        //$webinar = WebinarModel::with('pendaftar')->findOrFail($id);
+
+        return view('download', compact('webinar'));
+
+    }
 }
