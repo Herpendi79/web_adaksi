@@ -306,7 +306,7 @@ $url = '/admin/webinar';
 <script>
     Swal.fire({
         icon: 'success',
-        title: 'Berhasil!',
+        title: 'success!',
         text: "{{ session('success') }}",
         confirmButtonText: 'OK'
     });

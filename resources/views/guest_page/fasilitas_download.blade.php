@@ -123,7 +123,6 @@
                             <p class="card-title-desc text-center">Selamat Datang, <strong>{{ $pendaftar->nama ?? '-' }}</strong>!</p>
                         </div>
                         <div>
-                            <p class="card-title-desc text-center">Judul / Tema:</p>
                             <p class="card-title-desc text-center"><strong>{{ $pendaftar->webinar->judul ?? '-' }}</strong>!</p>
                         </div>
                     </div>

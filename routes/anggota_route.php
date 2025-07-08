@@ -18,7 +18,7 @@ Route::prefix('anggota')
         Route::get('profile/edit', [AnggotaController::class, 'editProfile'])->name('anggota.profile.edit');
         Route::post('profile/edit', [AnggotaController::class, 'updateProfile'])->name('anggota.profile.update');
         Route::get('download-kta', [AnggotaController::class, 'downloadKTA'])->name('anggota.download_kta');
-        Route::get('sertifikat/{id}', [WebinarController::class, 'sertifikat'])->name('anggota.sertifikat');
+        Route::get('sertifikat/{id_wb}/{id?}', [WebinarController::class, 'sertifikat'])->name('anggota.sertifikat');
         Route::get('profile/edit_password', [AnggotaController::class, 'editPassword'])->name('anggota.profile.edit_password');
         Route::post('profile/edit_password', [AnggotaController::class, 'updatePassword'])->name('anggota.profile.update_password');
 

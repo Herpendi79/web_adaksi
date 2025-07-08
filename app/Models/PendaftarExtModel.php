@@ -20,7 +20,9 @@ class PendaftarExtModel extends Model
         'biaya',
         'keterangan',
         'bukti_tf',
-        'token'
+        'token',
+        'no_urut',
+        'no_sertifikat'
     ];
     public $timestamps = true;
     

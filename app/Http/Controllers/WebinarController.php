@@ -8,7 +8,7 @@ use App\Mail\AnggotaValidateMail;
 use App\Models\WebinarModel;
 use App\Models\FasilitasModel;
 use App\Models\PendaftarExtModel;
-use App\Models\AnggotaModel;
+use App\Models\SertifikatModel;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -134,14 +134,14 @@ class WebinarController extends Controller
             ->orderByRaw('CASE WHEN token IS NULL OR token = "" THEN 0 ELSE 1 END') // Prioritaskan NULL/"" di atas
             ->orderBy('created_at', 'desc') // urutan tambahan jika sama-sama null
             ->paginate(10);
-             $data = $webinar->first();
+        $data = $webinar->first();
 
         $pendaftar = WebinarModel::where('id_wb', $id)->firstOrFail();
         $jumlah_valid = PendaftarExtModel::where('id_wb', $id)
             ->whereNotNull('token')
             ->count();
 
-         $total_masuk = PendaftarExtModel::selectRaw('id_wb, SUM(biaya) as total')
+        $total_masuk = PendaftarExtModel::selectRaw('id_wb, SUM(biaya) as total')
             ->whereNotNull('token')
             ->where('token', '!=', '')
             ->groupBy('id_wb')
@@ -161,6 +161,13 @@ class WebinarController extends Controller
         return view('admin_page.webinar.create'); // atau view yang kamu gunakan
     }
 
+    function parseRupiahTambah000($value)
+    {
+        $angka = str_replace('.', '', $value); // hapus titik
+        return $angka;
+    }
+
+
     public function store(Request $request)
     {
         $messages = [
@@ -179,6 +186,9 @@ class WebinarController extends Controller
             'flyer.required' => 'Flyer wajib diunggah.',
             'flyer.mimes' => 'Flyer harus berupa JPG, JPEG, PNG, atau PDF.',
             'flyer.max' => 'Ukuran Flyer maksimal 2MB.',
+            'no_surat.required' => 'Nomor surat wajib diisi.',
+            'angkatan.required' => 'Angkatan wajib diisi.',
+            'unit.required' => 'Unit wajib diisi.',
             'sertifikat_depan.mimes' => 'Harus berupa JPG, JPEG, PNG',
             'sertifikat_belakang.mimes' => 'Harus berupa JPG, JPEG, PNG',
             'fasilitas.*.nama.required' => 'Nama fasilitas wajib diisi.',
@@ -196,8 +206,11 @@ class WebinarController extends Controller
             'bayar_free' => 'required|string',
             'moderator' => 'required|string',
             'flyer' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'sertifikat_depan' => 'required|file|mimes:pdf|max:2048',
-            'sertifikat_belakang' => 'required|file|mimes:pdf|max:2048',
+            'no_surat' => 'required|string',
+            'angkatan' => 'required|string',
+            'unit' => 'required|string',
+            'sertifikat_depan' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'sertifikat_belakang' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'fasilitas' => 'nullable|array',
             'fasilitas.*.nama' => 'required|string|max:255',
             'fasilitas.*.link' => 'required|url',
@@ -205,6 +218,16 @@ class WebinarController extends Controller
 
         try {
             DB::beginTransaction();
+
+            if ($request->bayar_free == 'free') {
+                $baa = 0;
+                $bana = 0;
+                $bna = 0;
+            } else {
+                $baa = parseRupiahTambah000($request->biaya_anggota_aktif);
+                $bana = parseRupiahTambah000($request->biaya_anggota_non_aktif);
+                $bna = parseRupiahTambah000($request->biaya_non_anggota);
+            }
 
             $webinar = WebinarModel::create([
                 'judul' => $request->judul,
@@ -215,16 +238,23 @@ class WebinarController extends Controller
                 'pukul' => $request->pukul,
                 'link_zoom' => $request->link_zoom,
                 'bayar_free' => $request->bayar_free,
-                'biaya_anggota_aktif' => $request->biaya_anggota_aktif,
-                'biaya_anggota_non_aktif' => $request->biaya_anggota_non_aktif,
-                'biaya_non_anggota' => $request->biaya_non_anggota,
+                'biaya_anggota_aktif' => $baa,
+                'biaya_anggota_non_aktif' => $bana,
+                'biaya_non_anggota' => $bna,
                 'moderator' => $request->moderator,
                 'flyer' => $this->uploadFile($request->file('flyer'), 'uploads/webinar'),
                 'sertifikat_depan' => $this->uploadFile($request->file('sertifikat_depan'), 'uploads/webinar'),
                 'sertifikat_belakang' => $this->uploadFile($request->file('sertifikat_belakang'), 'uploads/webinar'),
+                'status' => 'draft',
             ]);
 
-            // Simpan data fasilitas jika ada
+            $sertifikat = SertifikatModel::create([
+                'id_wb' => $webinar->id_wb,
+                'no_surat' => $request->no_surat,
+                'angkatan' => $request->angkatan,
+                'unit' => $request->unit
+            ]);
+
             if ($request->has('fasilitas')) {
                 foreach ($request->fasilitas as $item) {
                     FasilitasModel::create([
@@ -235,9 +265,12 @@ class WebinarController extends Controller
                 }
             }
 
+
+
             DB::commit();
-            return redirect()->route('webinar.index')->with('success', 'Webinar berhasil disimpan.');
+            return redirect()->back()->with('success', 'Webinar berhasil ditambahkan.');
         } catch (\Exception $e) {
+
             DB::rollBack();
             notify()->error('Gagal menyimpan data: ' . $e->getMessage());
             return redirect()->back()->withInput();
@@ -402,7 +435,7 @@ class WebinarController extends Controller
                 FasilitasModel::whereIn('id_fas', $toDelete)->delete();
             }
 
-            return redirect()->route('admin_page.webinar.index')->with('success', 'Webinar berhasil diperbarui.');
+            return redirect()->back()->with('success', 'Webinar berhasil diperbarui.');
         } catch (\Exception $e) {
             notify()->error('Gagal menyimpan data: ' . $e->getMessage());
             return redirect()->back()->withInput();
@@ -424,6 +457,30 @@ class WebinarController extends Controller
             return redirect()->back()->with('error', 'Gagal mempublish webinar: ' . $e->getMessage());
         }
     }
+    public function hapus($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Hapus fasilitas terkait
+            FasilitasModel::where('id_wb', $id)->delete();
+
+            // Hapus sertifikat terkait
+            SertifikatModel::where('id_wb', $id)->delete();
+
+            // Hapus webinar utama
+            $webinar = WebinarModel::findOrFail($id);
+            $webinar->delete();
+
+            DB::commit();
+
+            return redirect()->back()->with('success', '!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal hapus webinar: ' . $e->getMessage());
+        }
+    }
+
 
     public function selesai($id)
     {
@@ -435,9 +492,9 @@ class WebinarController extends Controller
             $webinar->status = 'selesai';
             $webinar->save();
 
-            return redirect()->back()->with('success', 'Webinar berhasil dipublish.');
+            return redirect()->back()->with('success', 'Webinar berhasil diselesaikan.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal mempublish webinar: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menyelesaikan webinar: ' . $e->getMessage());
         }
     }
 
@@ -448,7 +505,7 @@ class WebinarController extends Controller
             $token = Str::random(8);
 
             $ValidDaftar = PendaftarExtModel::where('id_pwe', $id)
-                ->whereNull('token') // hanya validasi jika belum tervalidasi
+                ->whereNull('token')
                 ->firstOrFail();
 
             $email = $ValidDaftar->email;
@@ -456,16 +513,59 @@ class WebinarController extends Controller
 
             $cekAnggota = User::where(function ($query) use ($email, $no_hp) {
                 $query->where('email', $email)
-                    ->orWhere('no_hp', $no_hp);
+                    ->Where('no_hp', $no_hp);
             })
                 ->first();
 
             $id_wb = $ValidDaftar->id_wb;
 
+            $sertifikat = SertifikatModel::where('id_wb', $id_wb)->firstOrFail();
+
+
+
+            // Ambil no_surat dari sertifikat
+            $no_surat = $sertifikat->no_surat;
+
+            // Cari pendaftar dengan no_sertifikat yang LIKE no_surat yang sedang diproses
+            $lastDaftar = PendaftarExtModel::where('no_sertifikat', 'like', $no_surat . '%')
+                ->orderBy('no_urut', 'desc')
+                ->first();
+
+            // Jika ditemukan, no_urut = terakhir + 1
+            // Jika tidak ditemukan (nomor baru), no_urut = 1
+            $no_urut = $lastDaftar ? $lastDaftar->no_urut + 1 : 1;
+
+            $bulan_romawi = [
+                1 => 'I',
+                2 => 'II',
+                3 => 'III',
+                4 => 'IV',
+                5 => 'V',
+                6 => 'VI',
+                7 => 'VII',
+                8 => 'VIII',
+                9 => 'IX',
+                10 => 'X',
+                11 => 'XI',
+                12 => 'XII',
+            ];
+
+            $bulan = date('n');
+            $tahun = date('Y');
+            $bulan_rom = $bulan_romawi[$bulan];
+
+            $hasil = $bulan_rom . '/' . $tahun;
+
+            //14-(i)/I/SERT/DPP-ADAKSI/VI/2025
+
+            $no_sertifikat = $sertifikat->no_surat . '-(' . $no_urut . ')/' . $sertifikat->angkatan . '/SERT' . '/' . $sertifikat->unit . '-ADAKSI/' . $hasil;
+
             $webinars = WebinarModel::find($id_wb);
 
             if ($request->valid === 'valid') {
                 $ValidDaftar->token = $token;
+                $ValidDaftar->no_urut = $no_urut;
+                $ValidDaftar->no_sertifikat = $no_sertifikat;
                 $ValidDaftar->save();
 
                 if ($cekAnggota) {
@@ -493,7 +593,7 @@ Setelah kegiatan *" . $webinars->judul . "* selesai anda dapat download sertifik
         
 Simpan dengan baik pesan ini ✌️
         
-📝 Login melalui link berikut ya:
+📝 Akses melalui link berikut ya:
 " . config('app.url') . "
         
 Terima kasih telah berpartisipasi bersama ADAKSI. Mari bersama berjuang untuk Indonesia Emas! 🇮🇩✨.
@@ -543,7 +643,7 @@ Salam,
                 \Log::error('WhatsApp API Error: ' . $error_msg);
             }
             curl_close($curl);
-            return redirect()->back()->with('success', 'Berhasil Divalidasi');
+            return redirect()->back()->with('success', '!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Berhasil Divalidasi', $e->getMessage());
         }
@@ -583,11 +683,11 @@ Salam,
             'provinsi.string' => 'Provinsi harus berupa teks.',
             'provinsi.max' => 'Provinsi maksimal 100 karakter.',
 
-            'keterangan.required' => 'Wajib diisi.',
+            // 'keterangan.required' => 'Wajib diisi.',
             'keterangan.string' => 'Harus berupa teks.',
             'keterangan.max' => 'Maksimal 100 karakter.',
 
-            'bukti_transfer.required' => 'Bukti transfer wajib diunggah.',
+            //'bukti_transfer.required' => 'Bukti transfer wajib diunggah.',
             'bukti_transfer.file' => 'Bukti transfer harus berupa file.',
             'bukti_transfer.mimes' => 'Bukti transfer harus berupa file JPG, JPEG, PNG, atau PDF.',
             'bukti_transfer.max' => 'Ukuran bukti transfer maksimal 2MB.',
@@ -619,92 +719,296 @@ Salam,
             'status_dosen' => 'required|string',
             'homebase_pt' => 'required|string|max:100',
             'provinsi' => 'required|string|max:100',
-            'keterangan' => 'required|string|max:255',
-            'bukti_transfer' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'keterangan' => 'nullable|string|max:255',
+            'bukti_transfer' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'foto' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
         ], $messages);
-        // die;
 
-        try {
+        if ($request->biaya != '0') {
+            try {
 
-            $webinar = WebinarModel::findOrFail($request->id_wb);
+                $webinar = WebinarModel::findOrFail($request->id_wb);
 
-            PendaftarExtModel::create([
-                'id_wb' => $request->id_wb,
-                'nama' => $request->nama_anggota,
-                'email' => $request->email,
-                'no_hp' => $request->no_hp,
-                'nip' => $request->nip_nipppk,
-                'status' => $request->status_dosen,
-                'home_base' => $request->homebase_pt,
-                'provinsi' => $request->provinsi,
-                'keterangan' => $request->keterangan,
-                'bukti_tf' => $this->uploadFilePendaftar($request->file('bukti_transfer'), 'uploads/bukti_tf_pendaftaran'),
-                'token' => null,
-                'biaya' => $request->biaya
-            ]);
+                PendaftarExtModel::create([
+                    'id_wb' => $request->id_wb,
+                    'nama' => $request->nama_anggota,
+                    'email' => $request->email,
+                    'no_hp' => $request->no_hp,
+                    'nip' => $request->nip_nipppk,
+                    'status' => $request->status_dosen,
+                    'home_base' => $request->homebase_pt,
+                    'provinsi' => $request->provinsi,
+                    'keterangan' => $request->keterangan,
+                    //'bukti_tf' => $this->uploadFilePendaftar($request->file('bukti_transfer'), 'uploads/bukti_tf_pendaftaran'),
+                    'token' => null,
+                    'biaya' => $request->biaya
+                ]);
 
-            // Kirim pesan ke user
-            $curl = curl_init();
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => 'https://api.fonnte.com/send',
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => '',
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_POSTFIELDS => array(
-                    'target' => $request->no_hp, // pastikan format nomor sudah internasional (62xxxxx)
-                    'message' => "Halo " . $request->nama_anggota . ",\n\n" .
-                        "Terima kasih telah mendaftar *" . $webinar->judul . "*" .
-                        ". Pendaftaran Anda sedang dalam *proses validasi* oleh admin. Silakan tunggu dalam waktu maksimal *2x24* jam.\n\n" .
-                        "Jika ada pertanyaan, Anda dapat menghubungi admin melalui email atau nomor WhatsApp yang tertera di website.\n\n" .
-                        "Salam,\n*Sistem ADAKSI*",
-                ),
-                CURLOPT_HTTPHEADER => array(
-                    'Authorization: 5ef8QqtZQtmcBLfiWth5'
-                ),
-            ));
+                if ($request->hasFile('bukti_tf')) {
+                    $webinar->bukti_tf = $this->uploadFilePendaftar($request->file('bukti_transfer'), 'uploads/bukti_transfer');
+                }
 
-            $response = curl_exec($curl);
-            if (curl_errno($curl)) {
-                $error_msg = curl_error($curl);
-                // Jika error, log atau tampilkan
-                \Log::error('WhatsApp API Error: ' . $error_msg);
+                $webinar->save();
+
+                $message = "🔔 *Pemberitahuan Pendaftaran Kegiatan* 🔔
+
+Halo Admin 👋,
+            
+Telah terdaftar peserta baru kegiatan di sistem ADAKSI yang menunggu proses validasi. Berikut detailnya:
+            
+👤 *Nama:* " . $request->nama_anggota . "
+📧 *Email:* " . $request->email . "
+📱 *No. HP:* " . $request->no_hp . "
+🏢 *Instansi:* " . $request->homebase_pt . "
+🌍 *Provinsi:* " . $request->provinsi . "
+            
+📌 *Status Kepesertaan:* Pending
+        
+Mohon untuk segera melakukan validasi melalui halaman admin berikut:
+" . config('app.url') . "
+Silakan login menggunakan akun admin Anda.
+            
+Terima kasih atas kerjasamanya.
+            
+Salam,  
+*Sistem ADAKSI*";
+
+
+                // get all users with role admin
+                $users = User::whereIn('role', ['admin'])->get();
+
+                // Kirim pesan ke semua adminn
+                foreach ($users as $user) {
+                    $curl = curl_init();
+
+                    curl_setopt_array($curl, array(
+                        CURLOPT_URL => 'https://api.fonnte.com/send',
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_ENCODING => '',
+                        CURLOPT_MAXREDIRS => 10,
+                        CURLOPT_TIMEOUT => 0,
+                        CURLOPT_FOLLOWLOCATION => true,
+                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                        CURLOPT_CUSTOMREQUEST => 'POST',
+                        CURLOPT_POSTFIELDS => array(
+                            'target' => $user->no_hp, // pastikan format nomor sudah internasional (62xxxxx)
+                            'message' => $message,
+                        ),
+                        CURLOPT_HTTPHEADER => array(
+                            'Authorization: 5ef8QqtZQtmcBLfiWth5'
+                        ),
+                    ));
+
+                    $response = curl_exec($curl);
+                    if (curl_errno($curl)) {
+                        $error_msg = curl_error($curl);
+                        // Jika error, log atau tampilkan
+                        \Log::error('WhatsApp API Error: ' . $error_msg);
+                    }
+                    curl_close($curl);
+                }
+
+                // Kirim pesan ke user
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => 'https://api.fonnte.com/send',
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'POST',
+                    CURLOPT_POSTFIELDS => array(
+                        'target' => $request->no_hp, // pastikan format nomor sudah internasional (62xxxxx)
+                        'message' => "Halo " . $request->nama_anggota . ",\n\n" .
+                            "Terima kasih telah mendaftar *" . $webinar->judul . "*" .
+                            ". Pendaftaran Anda sedang dalam *proses validasi* oleh admin. Silakan tunggu dalam waktu maksimal *2x24 jam*.\n\n" .
+                            "Jika ada pertanyaan, Anda dapat menghubungi admin melalui email atau nomor WhatsApp yang tertera di website.\n\n" .
+                            "Salam,\n*Sistem ADAKSI*",
+                    ),
+                    CURLOPT_HTTPHEADER => array(
+                        'Authorization: 5ef8QqtZQtmcBLfiWth5'
+                    ),
+                ));
+
+
+                $response = curl_exec($curl);
+                if (curl_errno($curl)) {
+                    $error_msg = curl_error($curl);
+                    // Jika error, log atau tampilkan
+                    \Log::error('WhatsApp API Error: ' . $error_msg);
+                }
+                curl_close($curl);
+
+
+                return redirect()->back()->with('success', 'Pendaftaran kegiatan berhasil, periksa WA anda untuk update selanjutnya. Salam ADAKSI!');
+            } catch (\Exception $e) {
+                notify()->error('Terjadi kesalahan saat pendaftaran: ' . $e->getMessage());
+                return redirect()->back()->withInput();
             }
-            curl_close($curl);
+        } else {
+            try {
+
+                $id_wb = $request->id_wb;
+
+                $sertifikat = SertifikatModel::where('id_wb', $id_wb)->firstOrFail();
+
+                // Ambil no_surat dari sertifikat
+                $no_surat = $sertifikat->no_surat;
+
+                // Cari pendaftar dengan no_sertifikat yang LIKE no_surat yang sedang diproses
+                $lastDaftar = PendaftarExtModel::where('no_sertifikat', 'like', $no_surat . '%')
+                    ->orderBy('no_urut', 'desc')
+                    ->first();
+
+                // Jika ditemukan, no_urut = terakhir + 1
+                // Jika tidak ditemukan (nomor baru), no_urut = 1
+                $no_urut = $lastDaftar ? $lastDaftar->no_urut + 1 : 1;
+
+                // Romawi bulan
+                $bulan_romawi = [
+                    1 => 'I',
+                    2 => 'II',
+                    3 => 'III',
+                    4 => 'IV',
+                    5 => 'V',
+                    6 => 'VI',
+                    7 => 'VII',
+                    8 => 'VIII',
+                    9 => 'IX',
+                    10 => 'X',
+                    11 => 'XI',
+                    12 => 'XII',
+                ];
+
+                $bulan = date('n');
+                $tahun = date('Y');
+                $bulan_rom = $bulan_romawi[$bulan];
+                $hasil = $bulan_rom . '/' . $tahun;
+
+                // Format no_sertifikat
+                $no_sertifikat = $sertifikat->no_surat . '-(' . $no_urut . ')/' . $sertifikat->angkatan . '/SERT' . '/' . $sertifikat->unit . '-ADAKSI/' . $hasil;
+                $webinar = WebinarModel::findOrFail($request->id_wb);
+
+                PendaftarExtModel::create([
+                    'id_wb' => $request->id_wb,
+                    'nama' => $request->nama_anggota,
+                    'email' => $request->email,
+                    'no_hp' => $request->no_hp,
+                    'nip' => $request->nip_nipppk,
+                    'status' => $request->status_dosen,
+                    'home_base' => $request->homebase_pt,
+                    'provinsi' => $request->provinsi,
+                    'keterangan' => $request->keterangan,
+                    //'bukti_tf' => $this->uploadFilePendaftar($request->file('bukti_transfer'), 'uploads/bukti_tf_pendaftaran'),
+                    'token' => $token,
+                    'no_urut' => $no_urut,
+                    'no_sertifikat' => $no_sertifikat,
+                    'biaya' => $request->biaya
+                ]);
+
+                if ($request->hasFile('bukti_tf')) {
+                    $webinar->bukti_tf = $this->uploadFilePendaftar($request->file('bukti_transfer'), 'uploads/bukti_transfer');
+                }
+
+                $webinar->save();
+
+                // Kirim pesan ke user
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => 'https://api.fonnte.com/send',
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'POST',
+                    CURLOPT_POSTFIELDS => array(
+
+                        'target' => $request->no_hp, // pastikan format nomor sudah internasional (62xxxxx)
+                        'message' => "Halo " . $request->nama_anggota . ",\n\n" .
+                            "Terima kasih telah mendaftar *" . $webinar->judul . "*" .
+                            ". Setelah kegiatan selesai anda dapat download sertifikat dan fasilitas lainnya pada menu *Sertifkat* dengan akses berikut:\n\n" .
+                            "🔑 *Username:* " . $request->email . "\n" .
+                            "🔒 *Token:* " . $token . "\n\n" .
+
+                            "📝 Akses melalui link berikut ya:\n" .
+                            " " . config('app.url') . "\n\n" .
+                            "Jika ada pertanyaan, Anda dapat menghubungi admin melalui email atau nomor WhatsApp yang tertera di website.\n\n" .
+                            "Salam,\n*Sistem ADAKSI*",
+                    ),
+                    CURLOPT_HTTPHEADER => array(
+                        'Authorization: 5ef8QqtZQtmcBLfiWth5'
+                    ),
+                ));
+
+                $response = curl_exec($curl);
+                if (curl_errno($curl)) {
+                    $error_msg = curl_error($curl);
+                    // Jika error, log atau tampilkan
+                    \Log::error('WhatsApp API Error: ' . $error_msg);
+                }
+                curl_close($curl);
 
 
-            return redirect()->back()->with('success', 'Pendaftaran kegiatan berhasil, periksa WA anda untuk update selanjutnya. Salam ADAKSI!');
-        } catch (\Exception $e) {
-            notify()->error('Terjadi kesalahan saat pendaftaran: ' . $e->getMessage());
-            return redirect()->back()->withInput();
+                return redirect()->back()->with('success', 'Pendaftaran kegiatan berhasil, periksa WA anda untuk update selanjutnya. Salam ADAKSI!');
+            } catch (\Exception $e) {
+                notify()->error('Terjadi kesalahan saat pendaftaran: ' . $e->getMessage());
+                return redirect()->back()->withInput();
+            }
         }
     }
 
-    public function sertifikat($id){
+    public function sertifikat($id_wb)
+    {
 
-        $webinar = WebinarModel::with('pendaftar')->findOrFail($id);
+        $user = Auth::user();
+        $email = $user->email;
+        $no_hp = $user->no_hp;
 
-        return view('components.sertifikat', compact('webinar'));
+        $webinar = WebinarModel::with('pendaftar')->findOrFail($id_wb);
 
+        $pendaftar = PendaftarExtModel::where('id_wb', $id_wb)
+            ->where('email', $email)
+            ->where('no_hp', $no_hp)
+            ->first();
+
+        return view('components.sertifikat', compact('webinar', 'pendaftar'));
     }
 
-    public function download_sertifikat(){
+    public function sertifikat_nonanggota($id_wb)
+    {
+
+        $user = Auth::user();
+        $email = $user->email;
+        $no_hp = $user->no_hp;
+
+        $webinar = WebinarModel::with('pendaftar')->findOrFail($id_wb);
+
+        $pendaftar = PendaftarExtModel::where('id_wb', $id_wb)
+            ->where('email', $email)
+            ->where('no_hp', $no_hp)
+            ->first();
+
+        return view('components.sertifikat', compact('webinar', 'pendaftar'));
+    }
+
+
+    public function download_sertifikat()
+    {
 
         //$webinar = WebinarModel::with('pendaftar')->findOrFail($id);
 
         return view('download', compact('webinar'));
-
     }
 
-     public function showFasilitasAkses(){
+    public function showFasilitasAkses()
+    {
 
         //$webinar = WebinarModel::with('pendaftar')->findOrFail($id);
 
         return view('download', compact('webinar'));
-
     }
 }

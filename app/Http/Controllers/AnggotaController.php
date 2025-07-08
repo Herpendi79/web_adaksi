@@ -778,7 +778,7 @@ Salam,
         $webinar_terdaftar = DB::table('pendaftar_webinar_ext')
             ->where(function ($query) use ($email, $no_hp) {
                 $query->where('email', $email)
-                    ->orWhere('no_hp', $no_hp);
+                    ->Where('no_hp', $no_hp);
             })
             ->pluck('id_wb')
             ->unique()
@@ -788,7 +788,7 @@ Salam,
             ->where('id_user', $user->id_user)
             ->value('status_anggota');
 
-      
+
         // Tentukan tipe biaya yang akan digunakan berdasarkan status anggota
         $biaya_tipe = ($status_anggota === 'aktif') ? 'biaya_anggota_aktif' : 'biaya_anggota_non_aktif';
 
@@ -922,6 +922,64 @@ Salam,
                 'token' => null,
                 'biaya' => $biaya ?? 0,
             ]);
+
+            $message = "🔔 *Pemberitahuan Pendaftaran Kegiatan* 🔔
+
+Halo Admin 👋,
+            
+Telah terdaftar peserta baru kegiatan di sistem ADAKSI yang menunggu proses validasi. Berikut detailnya:
+            
+👤 *Nama:* " . $data->nama_anggota . "
+📧 *Email:* " . $data->email . "
+📱 *No. HP:* " . $data->no_hp . "
+🏢 *Instansi:* " . $data->homebase_pt . "
+🌍 *Provinsi:* " . $data->provinsi . "
+            
+📌 *Status Kepesertaan:* Pending
+        
+Mohon untuk segera melakukan validasi melalui halaman admin berikut:
+" . config('app.url') . "
+Silakan login menggunakan akun admin Anda.
+            
+Terima kasih atas kerjasamanya.
+            
+Salam,  
+*Sistem ADAKSI*";
+
+
+            // get all users with role admin
+            $users = User::whereIn('role', ['admin'])->get();
+
+            // Kirim pesan ke semua adminn
+            foreach ($users as $user) {
+                $curl = curl_init();
+
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => 'https://api.fonnte.com/send',
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'POST',
+                    CURLOPT_POSTFIELDS => array(
+                        'target' => $user->no_hp, // pastikan format nomor sudah internasional (62xxxxx)
+                        'message' => $message,
+                    ),
+                    CURLOPT_HTTPHEADER => array(
+                        'Authorization: 5ef8QqtZQtmcBLfiWth5'
+                    ),
+                ));
+
+                $response = curl_exec($curl);
+                if (curl_errno($curl)) {
+                    $error_msg = curl_error($curl);
+                    // Jika error, log atau tampilkan
+                    \Log::error('WhatsApp API Error: ' . $error_msg);
+                }
+                curl_close($curl);
+            }
 
             // Kirim pesan ke user
             $curl = curl_init();

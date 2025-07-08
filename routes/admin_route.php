@@ -59,6 +59,7 @@ Route::prefix('admin')
                 Route::get('create', 'create')->name('webinar.create');
                 Route::post('/admin/webinar', [WebinarController::class, 'store'])->name('webinar.store');
                 Route::post('publish/{id}', 'publish')->where('id', '[0-9]+');
+                Route::post('hapus/{id}', 'hapus')->where('id', '[0-9]+');
                 Route::post('selesai/{id}', 'selesai')->where('id', '[0-9]+');
                 Route::get('edit/{id}', 'edit')->name('admin.webinar.edit');
                 Route::put('admin/webinar/{id}', [WebinarController::class, 'update'])->name('webinar.update');

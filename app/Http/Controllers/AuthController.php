@@ -179,9 +179,19 @@ Salam,
 
     public function fasilitasSertifikat($id){
 
+        $pendaftar = session('pendaftar');
+
+        $email = $pendaftar->email;
+        $no_hp = $pendaftar->no_hp;
+
         $webinar = WebinarModel::with('pendaftar')->findOrFail($id);
 
-        return view('components.sertifikat', compact('webinar'));
+        $pendaftar = PendaftarExtModel::where('id_wb', $id)
+            ->where('email', $email)
+            ->where('no_hp', $no_hp)
+            ->first();
+
+        return view('components.sertifikat', compact('webinar', 'pendaftar'));
 
     }
 

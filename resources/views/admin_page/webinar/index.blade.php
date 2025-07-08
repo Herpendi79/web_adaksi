@@ -321,7 +321,50 @@ $url = '/admin/webinar';
                                             data-bs-original-title="Edit">
                                             <i class="mdi mdi-pencil fs-14 text-info"></i>
                                         </a>
-                                         
+                                         @if ($data->status == 'draft')
+                                        <button type="button" aria-label="anchor"
+                                            class="btn btn-icon btn-sm bg-danger-subtle me-1"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalHapus{{ $data->id_wb }}"
+                                            data-bs-original-title="Hapus">
+                                            <i class="mdi mdi-trash-can fs-14 text-danger"></i>
+                                        </button>
+
+                                        <!-- Modal Validasi -->
+                                        <div class="modal fade" id="modalHapus{{ $data->id_wb }}"
+                                            tabindex="-1"
+                                            aria-labelledby="modalHapus{{ $data->id_wb }}"
+                                            aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <form
+                                                    action="{{ url($url . '/hapus/' . $data->id_wb) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title"
+                                                                id="modalHapus{{ $data->id_wb }}">
+                                                                Hapus Webinar
+                                                            </h5>
+                                                            <button type="button" class="btn-close"
+                                                                data-bs-dismiss="modal"
+                                                                aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>Apakah Anda yakin ingin menghapus webinar?
+                                                            </p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-dark btn-sm"
+                                                                data-bs-dismiss="modal">Batal</button>
+                                                            <button type="submit"
+                                                                class="btn btn-primary btn-sm">Hapus</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                         @endif
                                     </td>
                                 </tr>
                                 @endforeach

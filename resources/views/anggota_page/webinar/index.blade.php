@@ -23,7 +23,7 @@ $url = '/anggota/webinar';
             <ol class="breadcrumb m-0 py-0">
                 <li class="breadcrumb-item">
                     <a href="{{ url($url) }}">
-                        Components
+                        Kegiatan
                     </a>
                 </li>
                 <li class="breadcrumb-item">
@@ -62,10 +62,6 @@ $url = '/anggota/webinar';
                             <a href="/anggota/webinar"
                                 class="btn btn-primary btn-sm d-flex align-items-center gap-1 ms-2">
                                 <i class="mdi mdi-refresh"></i> Refresh
-                            </a>
-                            <a href="{{ route('webinar.create') }}"
-                                class="btn btn-success btn-sm d-flex align-items-center gap-1 ms-2">
-                                <i class="mdi mdi-plus"></i> Tambah
                             </a>
 
                         </form>
@@ -121,8 +117,8 @@ $url = '/anggota/webinar';
                                                             </li>
                                                             @endforeach
                                                             <li class="list-group-item">
-                                                                <strong>Sertifikat Depan</strong><br>
-                                                                <a href="{{ url('anggota/sertifikat/' . $data->id_wb) }}" target="_blank">Klik untuk Download</a>
+                                                                <strong>Sertifikat</strong><br>
+                                                                <a href="{{ url('anggota/sertifikat/' . $data->id_wb ) }}" target="_blank">Klik untuk Download</a>
                                                             </li>
                                                         </ul>
                                                         @else

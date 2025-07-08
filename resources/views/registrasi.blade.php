@@ -120,11 +120,10 @@
                             </div>
                             <h4 class="card-title text-center">FORM REGISTRASI
                             </h4>
-                          <p class="card-title-desc text-center"><strong>{{ $registrasi->judul }}</strong> 
+                            <p class="card-title-desc text-center"><strong>{{ $registrasi->judul }}</strong>
                             </p>
                         </div>
-encty
-                        <form action="{{ route('store_registrasi') }}" method="POST" pe="multipart/form-data">
+                        <form action="{{ route('store_registrasi') }}" method="POST" enctype="multipart/form-data">
                             @csrf
 
                             {{-- Nama Lengkap --}}
@@ -169,7 +168,7 @@ encty
 
                                 {{-- Nomor HP / WA --}}
                                 <div class="mb-3 col-md-6">
-                                   <label for="no_hp" class="form-label mb-1">Nomor HP (<strong>Wajib WA</strong>)</label>
+                                    <label for="no_hp" class="form-label mb-1">Nomor HP (<strong>Wajib WA</strong>)</label>
                                     <input type="tel" class="form-control @error('no_hp') is-invalid @enderror" id="no_hp" name="no_hp"
                                         placeholder="Contoh : 081251226666" value="{{ old('no_hp') }}">
                                     @error('no_hp')
@@ -270,18 +269,20 @@ encty
                                 </div>
                                 @enderror
                             </div>
-                            
+
+
+                            @if ($registrasi->bayar_free == 'bayar')
                             {{-- Keterangan Rekening Pengirim --}}
-                                <div class="mb-3">
-                                    <label for="keterangan" class="form-label mb-1">Informasi Rekening Pengirim</label>
-                                    <input type="text" class="form-control @error('keterangan') is-invalid @enderror" id="keterangan" name="keterangan"
-                                        placeholder="Misal: Budi Karya - BRI 03178261829256" value="{{ old('keterangan') }}">
-                                    @error('keterangan')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
-                                    @enderror
+                            <div class="mb-3">
+                                <label for="keterangan" class="form-label mb-1">Informasi Rekening Pengirim</label>
+                                <input type="text" class="form-control @error('keterangan') is-invalid @enderror" id="keterangan" name="keterangan"
+                                    placeholder="Misal: Budi Karya - BRI 03178261829256" value="{{ old('keterangan') }}">
+                                @error('keterangan')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
                                 </div>
+                                @enderror
+                            </div>
 
                             {{-- Bukti Transfer --}}
                             <div class="mb-3">
@@ -290,8 +291,6 @@ encty
                                     class="form-control @error('bukti_transfer') is-invalid @enderror"
                                     id="bukti_transfer"
                                     name="bukti_transfer">
-                                <input type="hidden" name="id_wb" value="{{ $id_wb }}">
-                                <input type="hidden" name="biaya" value="{{ $total_bayar }}">
                                 <br>
                                 <small class="form-text text-danger">
                                     *Transfer senilai <strong class="text-success">Rp{{ number_format($total_bayar, 0, ',', '.') }}</strong> (pastikan persis hingga 3 digit terakhir)
@@ -305,7 +304,13 @@ encty
                                     {{ $message }}
                                 </div>
                                 @enderror
+                                <input type="hidden" name="biaya" value="{{ $total_bayar }}">
+                                <input type="hidden" name="id_wb" value="{{ $id_wb }}">
                             </div>
+                            @else
+                            <input type="hidden" name="id_wb" value="{{ $id_wb }}">
+                            <input type="hidden" name="biaya" value="0">
+                            @endif
 
                             <button type="submit" class="btn btn-dark w-100">Daftar</button>
                             <a href="{{ url('/') }}" class="btn btn-light w-100 mt-2">Kembali</a>
@@ -356,20 +361,20 @@ encty
 
     <!-- App js-->
     <script src="{{ url('/') }}/assets-template/js/app.js"></script>
-    
-    <!-- Tambahkan CDN SweetAlert -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-@if(session('success'))
-<script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Berhasil!',
-        text: "{{ session('success') }}",
-        confirmButtonText: 'OK'
-    });
-</script>
-@endif
+    <!-- Tambahkan CDN SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @if(session('success'))
+    <script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: "{{ session('success') }}",
+            confirmButtonText: 'OK'
+        });
+    </script>
+    @endif
 
 
 
