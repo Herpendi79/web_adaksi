@@ -1,5 +1,5 @@
 @extends('layouts.admin_layout')
-@section('title', 'Edit Profile')
+@section('title', 'Edit Webinar')
 @section('content')
 <div class="container-fluid">
     <div class="py-3 d-flex align-items-sm-center flex-sm-row flex-column">
@@ -9,7 +9,7 @@
 
         <div class="text-end">
             <ol class="breadcrumb m-0 py-0">
-                <li class="breadcrumb-item"><a href="javascript: void(0);">Profil</a></li>
+                <li class="breadcrumb-item"><a href="javascript: void(0);">Webinar</a></li>
                 <li class="breadcrumb-item active">Edit Webinar</li>
             </ol>
         </div>
@@ -17,18 +17,19 @@
 
     <div class="card">
         <div class="card-body">
-
             @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                
+            <a href="{{ url('admin/webinar') }}" class="btn btn-secondary me-2">Kembali</a>
             </div>
             @endif
+            
             <form action="{{ route('webinar.update', $webinar->id_wb) }}" method="POST"
                 enctype="multipart/form-data" class="needs-validation" novalidate>
                 @csrf
                 @method('PUT')
-
                 <div class="row">
                     {{-- Judul --}}
                     <div class="mb-2 col-md-12">
@@ -267,45 +268,6 @@
 
 
                     <div class="row">
-                        {{-- Moderator --}}
-                        <div class="mb-2 col-md-4">
-                            <label for="moderator" class="form-label m-0">Moderator</label>
-                            <input type="text" class="form-control @error('moderator') is-invalid @enderror"
-                                id="moderator" name="moderator" placeholder="Misal: Jhon & Harsi"
-                                value="{{ $webinar->pukul ?? old('moderator') }}">
-                            @error('moderator')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                            @enderror
-                        </div>
-
-                        {{-- Sertifikat Depan --}}
-                        <div class="mb-1 col-md-2">
-                            <label for="sertifikat_depan" class="form-label mb-1">Sertifikat Depan</label>
-                            <input type="file"
-                                class="form-control @error('sertifikat_depan') is-invalid @enderror"
-                                id="sertifikat_depan"
-                                name="sertifikat_depan">
-                            @error('sertifikat_depan')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                            @enderror
-                        </div>
-                        {{-- Sertifikat Belakang --}}
-                        <div class="mb-1 col-md-2">
-                            <label for="sertifikat_belakang" class="form-label mb-1">Sertifikat Belakang</label>
-                            <input type="file"
-                                class="form-control @error('sertifikat_belakang') is-invalid @enderror"
-                                id="sertifikat_belakang"
-                                name="sertifikat_belakang">
-                            @error('sertifikat_belakang')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                            @enderror
-                        </div>
                         {{-- Flyer --}}
                         <div class="mb-2 col-md-4">
                             <label for="flyer" class="form-label mb-1">Flyer</label>
@@ -319,58 +281,144 @@
                             </div>
                             @enderror
                         </div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        {{-- Label dan Tombol Tambah --}}
-                        <label for="fasilitas" class="form-label mb-1">Link Fasilitas (Misal :link PPT, link rekaman, link undangan, link presensi dll)</label>
-                        <div class="d-flex justify-content-start mb-3">
-                            <button type="button" id="add-fasilitas" class="btn btn-info">+</button>
-                        </div>
-
-                        {{-- Container untuk Input Fasilitas --}}
-                        <div id="fasilitas-container">
-                            @foreach ($webinar->fasilitas as $i => $fas)
-                            <div class="row mb-2 fasilitas-item">
-                                <input type="hidden" name="fasilitas[{{ $i }}][id_fas]" value="{{ $fas->id_fas }}">
-
-                                <div class="col-md-5">
-                                    <label class="form-label m-0">Nama Fasilitas {{ $i+1 }}</label>
-                                    <input type="text" class="form-control @error(" fasilitas.$i.nama") is-invalid @enderror" name="fasilitas[{{ $i }}][nama]" value="{{ old("fasilitas.$i.nama", $fas->nama) }}">
-                                    @error("fasilitas.$i.nama")
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="col-md-5">
-                                    <label class="form-label m-0">Link Fasilitas {{ $i+1 }}</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control @error(" fasilitas.$i.link") is-invalid @enderror" name="fasilitas[{{ $i }}][link]" value="{{ old("fasilitas.$i.link", $fas->link) }}"
-                                            placeholder="Contoh -> https://www.adaksi.org/">
-                                        <button type="button" class="btn btn-danger remove-fasilitas">Hapus</button>
-                                    </div>
-                                    @error("fasilitas.$i.link")
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                        {{-- Sertifikat Depan --}}
+                        <div class="mb-1 col-md-4">
+                            <label for="sertifikat_depan" class="form-label mb-1">Sertifikat Depan</label>
+                            <input type="file"
+                                class="form-control @error('sertifikat_depan') is-invalid @enderror"
+                                id="sertifikat_depan"
+                                name="sertifikat_depan">
+                            @error('sertifikat_depan')
+                            <div class="invalid-feedback">
+                                {{ $message }}
                             </div>
-                            @endforeach
+                            @enderror
                         </div>
-
+                        {{-- Sertifikat Belakang --}}
+                        <div class="mb-1 col-md-4">
+                            <label for="sertifikat_belakang" class="form-label mb-1">Sertifikat Belakang</label>
+                            <input type="file"
+                                class="form-control @error('sertifikat_belakang') is-invalid @enderror"
+                                id="sertifikat_belakang"
+                                name="sertifikat_belakang">
+                            @error('sertifikat_belakang')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row">
+                        {{-- Moderator --}}
+                        <div class="mb-2 col-md-4">
+                            <label for="moderator" class="form-label m-0">Moderator</label>
+                            <input type="text" class="form-control @error('moderator') is-invalid @enderror"
+                                id="moderator" name="moderator" placeholder="Misal: Jhon & Harsi"
+                                value="{{ $webinar->moderator ?? old('moderator') }}">
+                            @error('moderator')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                            @enderror
+                        </div>
+                        {{-- No Surat --}}
+                        @php
+                        $sertifikat = $webinar->sertifikat->first();
+                        @endphp
+                        <div class="mb-2 col-md-2">
+                            <label for="no_surat" class="form-label m-0">Nomor Surat</label>
+                            <input type="text" class="form-control @error('no_surat') is-invalid @enderror"
+                                id="no_surat" name="no_surat" placeholder="No. Surat Terakhir"
+                                value="{{ $sertifikat->no_surat ?? old('no_surat') }}">
+                            @error('no_surat')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                            @enderror
+                        </div>
+                        {{-- angakatan --}}
+                        <div class="mb-2 col-md-2">
+                            <label for="angkatan" class="form-label m-0">Angakatan ADAKSI</label>
+                            <select class="form-select @error('angkatan') is-invalid @enderror" id="angkatan" name="angkatan">
+                                <option value="" disabled {{ old('angkatan', $sertifikat->angkatan) ? '' : 'selected' }}>-- Pilih Angkatan -- </option>
+                                <option value="I" {{ old('angkatan', $sertifikat->angkatan) == 'I' ? 'selected' : '' }}>I</option>
+                                <option value="II" {{ old('angkatan', $sertifikat->angkatan) == 'II' ? 'selected' : '' }}>II</option>
+                                <option value="III" {{ old('angkatan', $sertifikat->angkatan) == 'III' ? 'selected' : '' }}>III</option>
+                            </select>
+                            @error('angkatan')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                            @enderror
+                        </div>
+                        {{-- unit --}}
+                        <div class="mb-2 col-md-4">
+                            <label for="unit" class="form-label m-0">Unit</label>
+                            <select class="form-select @error('unit') is-invalid @enderror" id="unit" name="unit">
+                                <option value="" disabled {{ old('unit', $sertifikat->unit) ? '' : 'selected' }}>-- Pilih Unit -- </option>
+                                <option value="DPP" {{ old('angkatan', $sertifikat->angkatan) == 'DPP' ? 'selected' : '' }}>DPP</option>
+                                <option value="DPW" {{ old('angkatan', $sertifikat->angkatan) == 'DPW' ? 'selected' : '' }}>DPW</option>
+                                <option value="DPC" {{ old('angkatan', $sertifikat->angkatan) == 'DPC' ? 'selected' : '' }}>DPC</option>
+                            </select>
+                            @error('unit')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    {{-- Label dan Tombol Tambah --}}
+                    <label for="fasilitas" class="form-label mb-1">Link Fasilitas (Misal :link PPT, link rekaman, link undangan, link presensi dll)</label>
+                    <div class="d-flex justify-content-start mb-3">
+                        <button type="button" id="add-fasilitas" class="btn btn-info">+</button>
                     </div>
 
+                    {{-- Container untuk Input Fasilitas --}}
+                    <div id="fasilitas-container">
+                        @foreach ($webinar->fasilitas as $i => $fas)
+                        <div class="row mb-2 fasilitas-item">
+                            <input type="hidden" name="fasilitas[{{ $i }}][id_fas]" value="{{ $fas->id_fas }}">
+
+                            <div class="col-md-5">
+                                <label class="form-label m-0">Nama Fasilitas {{ $i+1 }}</label>
+                                <input type="text" class="form-control @error(" fasilitas.$i.nama") is-invalid @enderror" name="fasilitas[{{ $i }}][nama]" value="{{ old("fasilitas.$i.nama", $fas->nama) }}">
+                                @error("fasilitas.$i.nama")
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-5">
+                                <label class="form-label m-0">Link Fasilitas {{ $i+1 }}</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control @error(" fasilitas.$i.link") is-invalid @enderror" name="fasilitas[{{ $i }}][link]" value="{{ old("fasilitas.$i.link", $fas->link) }}"
+                                        placeholder="Contoh -> https://www.adaksi.org/">
+                                    <button type="button" class="btn btn-danger remove-fasilitas">Hapus</button>
+                                </div>
+                                @error("fasilitas.$i.link")
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+
+                </div>
 
 
-                    {{-- SCRIPT --}}
-                    <script>
-                        let fasilitasIndex = 1;
 
-                        document.getElementById('add-fasilitas').addEventListener('click', function() {
-                            const container = document.getElementById('fasilitas-container');
+                {{-- SCRIPT --}}
+                <script>
+                    let fasilitasIndex = 1;
 
-                            const row = document.createElement('div');
-                            row.classList.add('row', 'mb-2', 'fasilitas-item');
-                            row.innerHTML = `
+                    document.getElementById('add-fasilitas').addEventListener('click', function() {
+                        const container = document.getElementById('fasilitas-container');
+
+                        const row = document.createElement('div');
+                        row.classList.add('row', 'mb-2', 'fasilitas-item');
+                        row.innerHTML = `
                                 <div class="col-md-5">
                                     <label class="form-label m-0">Nama Fasilitas ${fasilitasIndex + 1}</label>
                                     <input type="text" class="form-control" name="fasilitas[${fasilitasIndex}][nama]" placeholder="Nama Fasilitas">
@@ -383,31 +431,28 @@
                                     </div>
                                 </div>
                             `;
-                            container.appendChild(row);
-                            fasilitasIndex++;
-                        });
+                        container.appendChild(row);
+                        fasilitasIndex++;
+                    });
 
-                        document.addEventListener('click', function(e) {
-                            if (e.target.classList.contains('remove-fasilitas')) {
-                                const item = e.target.closest('.fasilitas-item');
-                                item.remove();
-                            }
-                        });
-                    </script>
+                    document.addEventListener('click', function(e) {
+                        if (e.target.classList.contains('remove-fasilitas')) {
+                            const item = e.target.closest('.fasilitas-item');
+                            item.remove();
+                        }
+                    });
+                </script>
 
 
-
-                </div>
-
-                <hr>
-                <div class="d-flex justify-content-start mb-3">
-                    <a href="{{ url('admin/webinar') }}" class="btn btn-secondary me-2">Kembali</a>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </div>
-
-            </form>
+        <hr>
+        <div class="d-flex justify-content-start mb-3">
+            <a href="{{ url('admin/webinar') }}" class="btn btn-secondary me-2">Kembali</a>
+            <button type="submit" class="btn btn-primary">Simpan</button>
         </div>
+
+        </form>
     </div>
+</div>
 </div>
 @if(session('success'))
 <script>

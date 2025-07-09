@@ -52,15 +52,6 @@
                     </ul>
 
                     <ul class="list-unstyled topnav-menu mb-0 d-flex align-items-center">
-                        <li class="d-none d-lg-block">
-                            <form class="app-search d-none d-md-block me-auto">
-                                <div class="position-relative topbar-search">
-                                    <input type="text" class="form-control ps-4" placeholder="Search..." />
-                                    <i
-                                        class="mdi mdi-magnify fs-16 position-absolute text-muted top-50 translate-middle-y ms-2"></i>
-                                </div>
-                            </form>
-                        </li>
                         {{--
                         <!-- Button Trigger Customizer Offcanvas -->
                         <li class="d-none d-sm-flex">

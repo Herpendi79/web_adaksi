@@ -36,4 +36,8 @@ class WebinarModel extends Model
     {
         return $this->hasMany(PendaftarExtModel::class, 'id_wb', 'id_wb');
     }
+    public function sertifikat()
+    {
+        return $this->hasMany(SertifikatModel::class, 'id_wb', 'id_wb');
+    }
 }

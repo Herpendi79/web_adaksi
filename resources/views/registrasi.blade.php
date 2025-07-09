@@ -286,11 +286,11 @@
 
                             {{-- Bukti Transfer --}}
                             <div class="mb-3">
-                                <label for="bukti_transfer" class="form-label mb-1">Bukti Transfer</label>
+                                <label for="bukti_tf" class="form-label mb-1">Bukti Transfer</label>
                                 <input type="file"
-                                    class="form-control @error('bukti_transfer') is-invalid @enderror"
-                                    id="bukti_transfer"
-                                    name="bukti_transfer">
+                                    class="form-control @error('bukti_tf') is-invalid @enderror"
+                                    id="bukti_tf"
+                                    name="bukti_tf">
                                 <br>
                                 <small class="form-text text-danger">
                                     *Transfer senilai <strong class="text-success">Rp{{ number_format($total_bayar, 0, ',', '.') }}</strong> (pastikan persis hingga 3 digit terakhir)

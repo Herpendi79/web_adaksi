@@ -18,8 +18,14 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body text-center">
-                    <img src="{{ asset('uploads/foto_anggota/' . Auth::user()->anggota->foto) }}" alt="Profile Photo"
-                        class="rounded-circle mb-3" width="120" height="120">
+                    <img src="{{ Auth::user()->anggota && Auth::user()->anggota->foto && file_exists(public_path('uploads/foto_anggota/' . Auth::user()->anggota->foto)) 
+    ? asset('uploads/foto_anggota/' . Auth::user()->anggota->foto) 
+    : asset('uploads/foto_anggota/foto.jpg') }}"
+                        alt="Profile Photo"
+                        class="rounded-circle mb-3"
+                        width="120"
+                        height="120">
+    
                     <h5 class="card-title mb-1">
                         {{ Auth::user()->anggota->nama_anggota }}
                     </h5>

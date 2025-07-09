@@ -19,6 +19,7 @@ use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
 
 
 
@@ -31,10 +32,11 @@ class WebinarController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        $latestWebinars = WebinarModel::orderBy('tanggal_mulai', 'desc')->limit(7)->get();
+        $latestWebinars = WebinarModel::where('status', '!=', 'draft')
+            ->orderBy('tanggal_mulai', 'desc')->limit(7)->get();
 
 
-        return view('webinar', compact('webinars', 'latestWebinars',));
+        return view('welcome', compact('webinars', 'latestWebinars',));
     }
 
     public function agenda($id)
@@ -279,9 +281,10 @@ class WebinarController extends Controller
 
     public function edit($id)
     {
-        $webinar = WebinarModel::with('fasilitas')
+        $webinar = WebinarModel::with(['fasilitas', 'sertifikat'])
             ->where('id_wb', $id)
             ->firstOrFail();
+
 
         return view('admin_page.webinar.edit', compact('webinar'));
     }
@@ -301,7 +304,7 @@ class WebinarController extends Controller
         $filename = $prefix . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
         // Ganti dengan path absolut sesuai lokasi sebenarnya
-        $destination = base_path('public/' . $path); // sesuaikan jika Laravel di luar public_html
+        $destination = base_path('../public_html/' . $path); // sesuaikan jika Laravel di luar public_html
 
         if (!file_exists($destination)) {
             mkdir($destination, 0755, true);
@@ -321,7 +324,7 @@ class WebinarController extends Controller
         $filename = $prefix . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
         // Ganti dengan path absolut sesuai lokasi sebenarnya
-        $destination = base_path('public/' . $path); // sesuaikan jika Laravel di luar public_html
+        $destination = base_path('../public_html/' . $path); // sesuaikan jika Laravel di luar public_html
 
         if (!file_exists($destination)) {
             mkdir($destination, 0755, true);
@@ -352,6 +355,9 @@ class WebinarController extends Controller
             'link_zoom.required.url' => 'Link Zoom wajib diisi & berupa link.',
             'bayar_free.required' => 'Kepesertaan wajib dipilih.',
             'moderator.required' => 'Moderator wajib diisi.',
+            'no_surat.required' => 'Nomor Surat wajib diisi.',
+            'angkatan.required' => 'Angkatan wajib diisi.',
+            'unit.required' => 'Unit wajib diisi.',
             'sertifikat_depan.mimes' => 'Harus file PDF.',
             'sertifikat_belakang.mimes' => 'Harus file PDF.',
             'fasilitas.*.nama.required' => 'Nama fasilitas wajib diisi.',
@@ -368,6 +374,9 @@ class WebinarController extends Controller
             'link_zoom' => 'required|string|url',
             'bayar_free' => 'required|string',
             'moderator' => 'required|string',
+            'no_surat' => 'required|string',
+            'angkatan' => 'required|string',
+            'unit' => 'required|string',
             'flyer' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'sertifikat_depan' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'sertifikat_belakang' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
@@ -405,6 +414,24 @@ class WebinarController extends Controller
             }
 
             $webinar->save();
+
+            $sertifikat = SertifikatModel::where('id_wb', $webinar->id_wb)->first();
+
+            if ($sertifikat) {
+                $sertifikat->update([
+                    'no_surat' => $request->no_surat,
+                    'angkatan' => $request->angkatan,
+                    'unit' => $request->unit,
+                ]);
+            } else {
+                SertifikatModel::create([
+                    'id_wb' => $webinar->id_wb,
+                    'no_surat' => $request->no_surat,
+                    'angkatan' => $request->angkatan,
+                    'unit' => $request->unit,
+                ]);
+            }
+
 
             // Ambil ID fasilitas lama dari DB
             $existingFasilitasIds = FasilitasModel::where('id_wb', $webinar->id_wb)->pluck('id_fas')->toArray();
@@ -470,6 +497,17 @@ class WebinarController extends Controller
 
             // Hapus webinar utama
             $webinar = WebinarModel::findOrFail($id);
+            $files = [
+                public_path('uploads/webinar/' . $webinar->flyer),
+                public_path('uploads/webinar/' . $webinar->sertifikat_depan),
+                public_path('uploads/webinar/' . $webinar->sertifikat_belakang),
+            ];
+
+            foreach ($files as $file) {
+                if (File::exists($file) && is_file($file)) {
+                    File::delete($file);
+                }
+            }
             $webinar->delete();
 
             DB::commit();
@@ -687,10 +725,10 @@ Salam,
             'keterangan.string' => 'Harus berupa teks.',
             'keterangan.max' => 'Maksimal 100 karakter.',
 
-            //'bukti_transfer.required' => 'Bukti transfer wajib diunggah.',
-            'bukti_transfer.file' => 'Bukti transfer harus berupa file.',
-            'bukti_transfer.mimes' => 'Bukti transfer harus berupa file JPG, JPEG, PNG, atau PDF.',
-            'bukti_transfer.max' => 'Ukuran bukti transfer maksimal 2MB.',
+            //'bukti_tf.required' => 'Bukti transfer wajib diunggah.',
+            'bukti_tf.file' => 'Bukti transfer harus berupa file.',
+            'bukti_tf.mimes' => 'Bukti transfer harus berupa file JPG, JPEG, PNG, atau PDF.',
+            'bukti_tf.max' => 'Ukuran bukti transfer maksimal 2MB.',
 
             'foto.file' => 'Foto harus berupa file.',
             'foto.mimes' => 'Foto harus berupa file JPG, JPEG, atau PNG.',
@@ -720,7 +758,7 @@ Salam,
             'homebase_pt' => 'required|string|max:100',
             'provinsi' => 'required|string|max:100',
             'keterangan' => 'nullable|string|max:255',
-            'bukti_transfer' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'bukti_tf' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'foto' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
         ], $messages);
 
@@ -739,16 +777,16 @@ Salam,
                     'home_base' => $request->homebase_pt,
                     'provinsi' => $request->provinsi,
                     'keterangan' => $request->keterangan,
-                    //'bukti_tf' => $this->uploadFilePendaftar($request->file('bukti_transfer'), 'uploads/bukti_tf_pendaftaran'),
+                    'bukti_tf' => $this->uploadFilePendaftar($request->file('bukti_tf'), 'uploads/bukti_tf_pendaftaran'),
                     'token' => null,
                     'biaya' => $request->biaya
                 ]);
 
-                if ($request->hasFile('bukti_tf')) {
-                    $webinar->bukti_tf = $this->uploadFilePendaftar($request->file('bukti_transfer'), 'uploads/bukti_transfer');
-                }
+                //if ($request->hasFile('bukti_tf')) {
+                //     $webinar->bukti_tf = $this->uploadFilePendaftar($request->file('bukti_tf'), 'uploads/bukti_tf_pendaftaran');
+                // }
 
-                $webinar->save();
+                //  $webinar->save();
 
                 $message = "🔔 *Pemberitahuan Pendaftaran Kegiatan* 🔔
 
@@ -901,16 +939,16 @@ Salam,
                     'home_base' => $request->homebase_pt,
                     'provinsi' => $request->provinsi,
                     'keterangan' => $request->keterangan,
-                    //'bukti_tf' => $this->uploadFilePendaftar($request->file('bukti_transfer'), 'uploads/bukti_tf_pendaftaran'),
+                    'bukti_tf' => null,
                     'token' => $token,
                     'no_urut' => $no_urut,
                     'no_sertifikat' => $no_sertifikat,
                     'biaya' => $request->biaya
                 ]);
 
-                if ($request->hasFile('bukti_tf')) {
-                    $webinar->bukti_tf = $this->uploadFilePendaftar($request->file('bukti_transfer'), 'uploads/bukti_transfer');
-                }
+                //  if ($request->hasFile('bukti_tf')) {
+                //  $webinar->bukti_tf = $this->uploadFilePendaftar($request->file('bukti_tf'), 'uploads/bukti_tf_pendaftaran');
+                // }
 
                 $webinar->save();
 

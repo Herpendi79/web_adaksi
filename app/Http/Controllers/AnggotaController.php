@@ -444,41 +444,6 @@ Salam,
     public function validasi(Request $request, $id)
     {
 
-        // get anggota order no urut desc
-        /* $anggota_urut = AnggotaModel::orderBy('no_urut', 'desc')
-            ->first();
-        if (!$anggota_urut) {
-            $no_urut = 1; // jika tidak ada anggota, mulai dari 1
-        } else {
-            $no_urut = $anggota_urut->no_urut; // ambil no urut terakhir
-        }
-        $no_urut = $anggota_urut->no_urut + 1; // increment no urut by 1
-        // 6 digit terakhir dari id card berdasarkan referensi $no_urut 
-        if ($no_urut < 10) {
-            $id_card = '0000' . $no_urut;
-        } elseif ($no_urut < 100) {
-            $id_card = '000' . $no_urut;
-        } elseif ($no_urut < 1000) {
-            $id_card = '00' . $no_urut;
-        } elseif ($no_urut < 10000) {
-            $id_card = '0' . $no_urut;
-        } elseif ($no_urut < 100000) {
-            $id_card = '' . $no_urut;
-        } else {
-            $id_card = (string)$no_urut; // jika lebih dari 6 digit, gunakan no urut langsung
-        }
-        $id_card = '00119' . $id_card; // prefix 001199
-
-
-        $anggota = AnggotaModel::findOrFail($id);
-        $anggota->status_anggota = $request->status_anggota;
-        $anggota->no_urut = $no_urut;
-        $anggota->id_card = $id_card;
-        $anggota->save();
-        $anggota_user = User::findOrFail($anggota->id_user);*/
-
-
-
         $idCardTersedia = NoAnggotaModel::orderBy('id_card', 'asc')->first();
 
         if ($idCardTersedia) {
@@ -837,7 +802,7 @@ Salam,
         $filename = $prefix . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
         // Ganti dengan path absolut sesuai lokasi sebenarnya
-        $destination = base_path('public/' . $path); // sesuaikan jika Laravel di luar public_html
+        $destination = base_path('../public_html/' . $path); // sesuaikan jika Laravel di luar public_html
 
         if (!file_exists($destination)) {
             mkdir($destination, 0755, true);

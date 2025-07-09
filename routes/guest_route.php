@@ -5,9 +5,9 @@ use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebinarController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+//Route::get('/', function () {
+  //  return view('welcome');
+//});
 
 Route::get('/real-daftar-anggota', function () {
     return view('guest_page.real_anggota_daftar_form');
@@ -36,7 +36,7 @@ Route::get('/fasilitas/sertifikat/{id}', [AuthController::class, 'fasilitasSerti
 Route::post('/fasilitas/clear', [AuthController::class, 'clearSession'])->name('fasilitas.clear');
 
 
-Route::get('/webinar', [WebinarController::class, 'index'])->name('webinar.index');
+Route::get('/', [WebinarController::class, 'index'])->name('index');
 
 Route::get('/agenda/{id}', [WebinarController::class, 'agenda'])->name('agenda');
 
