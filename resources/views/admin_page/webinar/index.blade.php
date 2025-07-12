@@ -193,6 +193,7 @@ $url = '/admin/webinar';
                                         <a href="{{ asset('uploads/webinar/' . $data->sertifikat_belakang) }}" target="_blank">Lihat</a>
                                     </td>
                                     <td>
+                                        @if(($jumlahPendaftarPerWebinar[$data->id_wb] ?? 0) > 0)
                                         <p class="mb-0 fw-medium fs-14"> Valid: {{ $valid[$data->id_wb] ?? 0 }}</p>
                                         <p class="mb-0 fw-medium fs-14"> Pending: {{ $pendaftarBelumTokenPerWebinar[$data->id_wb] ?? 0 }}</p>
                                         @if ($data->status != 'draft')
@@ -205,6 +206,11 @@ $url = '/admin/webinar';
                                         </a>
 
                                         @endif
+                                        @else
+                                        <p class="mb-0 text-danger fw-medium fs-14">Tidak Ada Pendaftar</p>
+                                        @endif
+
+
                                     </td>
                                     <td>
                                         <span class="text-danger">Rp. {{ number_format($total_biaya[$data->id_wb] ?? 0, 0, ',', '.') }}</span>
@@ -321,7 +327,7 @@ $url = '/admin/webinar';
                                             data-bs-original-title="Edit">
                                             <i class="mdi mdi-pencil fs-14 text-info"></i>
                                         </a>
-                                         @if ($data->status == 'draft')
+                                        @if ($data->status == 'draft')
                                         <button type="button" aria-label="anchor"
                                             class="btn btn-icon btn-sm bg-danger-subtle me-1"
                                             data-bs-toggle="modal"
@@ -364,7 +370,7 @@ $url = '/admin/webinar';
                                                 </form>
                                             </div>
                                         </div>
-                                         @endif
+                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach

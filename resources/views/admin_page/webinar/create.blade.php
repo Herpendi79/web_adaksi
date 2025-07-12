@@ -21,6 +21,7 @@
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <a href="{{ url('admin/webinar') }}" class="btn btn-secondary me-2">Kembali</a>
             </div>
             @endif
             <form action="{{ route('webinar.store') }}" method="POST"

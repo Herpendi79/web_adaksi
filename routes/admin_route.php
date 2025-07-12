@@ -4,6 +4,7 @@ use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebinarController;
+use App\Http\Controllers\RakernasController;
 
 Route::prefix('admin')
     ->middleware(['access:admin|superadmin'])
@@ -57,7 +58,8 @@ Route::prefix('admin')
             ->group(function () {
                 Route::get('/', 'showAllWebinar');
                 Route::get('create', 'create')->name('webinar.create');
-                Route::post('/admin/webinar', [WebinarController::class, 'store'])->name('webinar.store');
+              //  Route::post('/admin/webinar', [WebinarController::class, 'store'])->name('webinar.store');
+                Route::post('/', 'store')->name('webinar.store');
                 Route::post('publish/{id}', 'publish')->where('id', '[0-9]+');
                 Route::post('hapus/{id}', 'hapus')->where('id', '[0-9]+');
                 Route::post('selesai/{id}', 'selesai')->where('id', '[0-9]+');
@@ -65,6 +67,23 @@ Route::prefix('admin')
                 Route::put('admin/webinar/{id}', [WebinarController::class, 'update'])->name('webinar.update');
                 Route::get('/admin/webinar', [WebinarController::class, 'showAllWebinar'])->name('webinar.index');
                 Route::get('pendaftar/{id}', [WebinarController::class, 'pendaftar'])->name('webinar.pendaftar');
+                Route::post('validasi/{id}', 'validasi')->where('id', '[0-9]+');
+                Route::post('validasiPendaftar/{id}', 'validasiPendaftar')->where('id', '[0-9]+');
+            });
+        // Rakernas Manajement
+        Route::prefix('rakernas')
+            ->controller(RakernasController::class)
+            ->group(function () {
+                Route::get('/', 'showAllRakernas');
+                Route::get('create', 'create')->name('rakernas.create');
+                Route::post('/', 'store')->name('rakernas.store');
+                Route::get('edit/{id}', 'edit')->name('admin.rakernas.edit');
+                 Route::put('{id}', 'update')->name('rakernas.update');
+                Route::post('publish/{id}', 'publish')->where('id', '[0-9]+');
+                Route::post('hapus/{id}', 'hapus')->where('id', '[0-9]+');
+                Route::post('selesai/{id}', 'selesai')->where('id', '[0-9]+');
+                Route::get('/admin/rakernas', [RakernasController::class, 'showAllRakernas'])->name('rakernas.index');
+                Route::get('pendaftar/{id}', [RakernasController::class, 'pendaftar'])->name('rakernas.pendaftar');
                 Route::post('validasi/{id}', 'validasi')->where('id', '[0-9]+');
                 Route::post('validasiPendaftar/{id}', 'validasiPendaftar')->where('id', '[0-9]+');
             });

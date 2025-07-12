@@ -20,6 +20,7 @@ use App\Models\PendaftarExtModel;
 use App\Models\RekapPerProvinsiExport;
 use App\Models\RekapGabunganExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\File;
 
 
 class AnggotaController extends Controller
@@ -355,8 +356,8 @@ Salam,
     public function tampilAnggota(Request $request)
     {
         // Ambil no_urut terakhir
-        $anggota = AnggotaModel::orderBy('no_urut', 'desc')->first();
-        $noUrutTerakhir = $anggota ? $anggota->no_urut : 0;
+        $noUrutTerakhir = AnggotaModel::count();
+
 
         // Ambil nama view dari query string (misalnya ?page=welcome)
         $halaman = $request->query('page', 'welcome');
@@ -384,21 +385,7 @@ Salam,
         return view('admin_page.anggota.edit', compact('anggota'));
     }
 
-    // public function update(Request $request, $id)
-    // {
-    //     $anggota = AnggotaModel::findOrFail($id);
-    //     $anggota->update($request->all());
 
-    //     // jika status anggota diubah menjadi aktif, maka no_urut dan id_card harus diupdate
-    //     if ($request->status_anggota === 'aktif') {
-    //         $anggota->no_urut = AnggotaModel::max('no_urut') + 1; // ambil no urut terakhir dan increment
-    //         $anggota->id_card = '00119' . str_pad($anggota->no_urut, 6, '0', STR_PAD_LEFT); // prefix 00119 dan 6 digit terakhir
-    //     }
-
-    //     $anggota->save();
-
-    //     return redirect()->route('anggota.index')->with('success', 'Anggota berhasil diperbarui.');
-    // }
 
     public function update(Request $request)
     {
@@ -492,6 +479,7 @@ Salam,
         $anggota->save();
 
         $anggota_user = User::findOrFail($anggota->id_user);
+        $iduser = $anggota->id_user;
 
 
 
@@ -521,6 +509,16 @@ Terima kasih atas kerjasamanya.
         
 Salam,  
 *Sistem ADAKSI*";
+
+            $anggota_maudel = AnggotaModel::where('id_user', $iduser)->firstOrFail();
+
+            // Hapus file bukti_tf_pendaftaran jika ada
+            if ($anggota_maudel->bukti_tf_pendaftaran) {
+                $filePath = public_path('uploads/bukti_tf_pendaftaran/' . $anggota_maudel->bukti_tf_pendaftaran);
+                if (File::exists($filePath) && is_file($filePath)) {
+                    File::delete($filePath);
+                }
+            }
 
             User::where('id_user', $anggota->id_user)->delete();
         }
@@ -802,7 +800,7 @@ Salam,
         $filename = $prefix . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
         // Ganti dengan path absolut sesuai lokasi sebenarnya
-        $destination = base_path('../public_html/' . $path); // sesuaikan jika Laravel di luar public_html
+        $destination = base_path('public_html/' . $path); // sesuaikan jika Laravel di luar public_html
 
         if (!file_exists($destination)) {
             mkdir($destination, 0755, true);

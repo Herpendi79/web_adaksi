@@ -114,10 +114,13 @@ class WebinarController extends Controller
             ->groupBy('id_wb')
             ->pluck('total', 'id_wb');
 
-        // $total_biaya = $total->get('id_wb', 0);
+        $jumlahPendaftarPerWebinar = PendaftarExtModel::selectRaw('id_wb, COUNT(*) as jumlah')
+            ->groupBy('id_wb')
+            ->pluck('jumlah', 'id_wb');
 
 
-        return view('admin_page.webinar.index', compact('webinar', 'pendaftarBelumTokenPerWebinar', 'valid', 'total_biaya'));
+
+        return view('admin_page.webinar.index', compact('webinar', 'pendaftarBelumTokenPerWebinar', 'valid', 'total_biaya','jumlahPendaftarPerWebinar'));
     }
 
     public function pendaftar(Request $request, $id)
@@ -545,6 +548,7 @@ class WebinarController extends Controller
             $ValidDaftar = PendaftarExtModel::where('id_pwe', $id)
                 ->whereNull('token')
                 ->firstOrFail();
+            // $id_pwe = $ValidDaftar->id_pwe;
 
             $email = $ValidDaftar->email;
             $no_hp = $ValidDaftar->no_hp;
@@ -651,7 +655,22 @@ Terima kasih telah berpartisipasi bersama ADAKSI. Mari bersama berjuang untuk In
 Salam,  
 *Sistem ADAKSI*";
 
+                $pendaftar = PendaftarExtModel::findOrFail($id);
+
+                if ($pendaftar->bukti_tf) {
+                    $filePath = public_path('uploads/bukti_tf_pendaftar/' . $pendaftar->bukti_tf);
+                    if (File::exists($filePath) && is_file($filePath)) {
+                        File::delete($filePath);
+                    }
+                }
+
                 PendaftarExtModel::where('id_pwe', $ValidDaftar->id_pwe)->delete();
+
+                $totalPendaftar = PendaftarExtModel::where('id_wb', $id_wb)->count();
+
+                if ($totalPendaftar === 0) {
+                    return redirect('admin/webinar')->with('info', 'Tidak ada data pendaftar lagi.');
+                }
             }
 
             // Kirim pesan ke semua admin

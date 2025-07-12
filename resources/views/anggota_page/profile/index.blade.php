@@ -25,7 +25,7 @@
                         class="rounded-circle mb-3"
                         width="120"
                         height="120">
-    
+
                     <h5 class="card-title mb-1">
                         {{ Auth::user()->anggota->nama_anggota }}
                     </h5>
