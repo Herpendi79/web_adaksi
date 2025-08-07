@@ -58,7 +58,7 @@ Route::prefix('admin')
             ->group(function () {
                 Route::get('/', 'showAllWebinar');
                 Route::get('create', 'create')->name('webinar.create');
-              //  Route::post('/admin/webinar', [WebinarController::class, 'store'])->name('webinar.store');
+                //  Route::post('/admin/webinar', [WebinarController::class, 'store'])->name('webinar.store');
                 Route::post('/', 'store')->name('webinar.store');
                 Route::post('publish/{id}', 'publish')->where('id', '[0-9]+');
                 Route::post('hapus/{id}', 'hapus')->where('id', '[0-9]+');
@@ -74,19 +74,26 @@ Route::prefix('admin')
         Route::prefix('rakernas')
             ->controller(RakernasController::class)
             ->group(function () {
-                Route::get('/', 'showAllRakernas');
+                Route::get('/', 'showAllRakernas')->name('rakernas.index');
                 Route::get('create', 'create')->name('rakernas.create');
                 Route::post('/', 'store')->name('rakernas.store');
                 Route::get('edit/{id}', 'edit')->name('admin.rakernas.edit');
-                 Route::put('{id}', 'update')->name('rakernas.update');
+                Route::get('absensi/{id}', 'absensi')->name('rakernas.absensi');
+                //  Route::get('absensi/{id}', [RakernasController::class, 'absensi'])->name('admin.rakernas.absensi');
+                Route::get('absensi_create/{id}', 'absensi_create')->name('admin.rakernas.absensi_create');
+                Route::post('check-qrcode', 'checkQrCode')->name('rakernas.check_qrcode');
+                Route::post('simpan-absensi', 'simpanAbsensi')->name('rakernas.simpan_absensi');
+                Route::post('store-absensi', 'store_absensi')->name('rakernas.store_absensi'); // jika ingin route store absensi terpisah
+                Route::put('{id}', 'update')->name('rakernas.update');
                 Route::post('publish/{id}', 'publish')->where('id', '[0-9]+');
                 Route::post('hapus/{id}', 'hapus')->where('id', '[0-9]+');
                 Route::post('selesai/{id}', 'selesai')->where('id', '[0-9]+');
-                Route::get('/admin/rakernas', [RakernasController::class, 'showAllRakernas'])->name('rakernas.index');
-                Route::get('pendaftar/{id}', [RakernasController::class, 'pendaftar'])->name('rakernas.pendaftar');
+                Route::get('pendaftar/{id}', 'pendaftar')->name('rakernas.pendaftar');
                 Route::post('validasi/{id}', 'validasi')->where('id', '[0-9]+');
                 Route::post('validasiPendaftar/{id}', 'validasiPendaftar')->where('id', '[0-9]+');
             });
+
+
 
         Route::prefix('calonanggota')
             ->controller(AnggotaController::class)

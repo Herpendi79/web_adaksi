@@ -28,15 +28,16 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+        "app/Helpers/Helper.php",
+         "app/Helpers/GoQrHelper.php"
+    ]
     },
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
-        },
-        "files": [
-        "app/Helpers/Helper.php"
-    ]
+        }
     },
     
     "scripts": {

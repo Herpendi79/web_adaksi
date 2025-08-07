@@ -165,6 +165,76 @@
                     </div>
                 </div>
                 <hr>
+                <div class="row">
+                    {{-- No Surat --}}
+                    <div class="mb-2 col-md-2">
+                        <label for="no_surat" class="form-label m-0">Nomor Surat</label>
+                        <input type="text" class="form-control @error('no_surat') is-invalid @enderror"
+                            id="no_surat" name="no_surat" placeholder="No. Surat Terakhir"
+                            value="{{ old('no_surat') }}">
+                        @error('no_surat')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                        @enderror
+                    </div>
+                    {{-- angkatan --}}
+                    <div class="mb-2 col-md-2">
+                        <label for="angkatan" class="form-label m-0">Angakatan ADAKSI</label>
+                        <select class="form-select @error('angkatan') is-invalid @enderror" id="angkatan" name="angkatan">
+                            <option value="" disabled selected>-- Pilih Angkatan --</option>
+                            <option value="I">I</option>
+                            <option value="II">II</option>
+                            <option value="III">III</option>
+                        </select>
+                        @error('angkatan')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                        @enderror
+                    </div>
+                    {{-- unit --}}
+                    <div class="mb-2 col-md-2">
+                        <label for="unit" class="form-label m-0">Unit</label>
+                        <select class="form-select @error('unit') is-invalid @enderror" id="unit" name="unit">
+                            <option value="" disabled selected>-- Pilih Unit --</option>
+                            <option value="DPP">DPP</option>
+                            <option value="DPW">DPW</option>
+                            <option value="DPC">DPC</option>
+                        </select>
+                        @error('unit')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                        @enderror
+                    </div>
+                    {{-- Sertifikat Depan --}}
+                    <div class="mb-1 col-md-2">
+                        <label for="sertifikat_depan" class="form-label mb-1">Sertifikat Depan</label>
+                        <input type="file"
+                            class="form-control @error('sertifikat_depan') is-invalid @enderror"
+                            id="sertifikat_depan"
+                            name="sertifikat_depan">
+                        @error('sertifikat_depan')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                        @enderror
+                    </div>
+                    {{-- Sertifikat Belakang --}}
+                    <div class="mb-1 col-md-2">
+                        <label for="sertifikat_belakang" class="form-label mb-1">Sertifikat Belakang</label>
+                        <input type="file"
+                            class="form-control @error('sertifikat_belakang') is-invalid @enderror"
+                            id="sertifikat_belakang"
+                            name="sertifikat_belakang">
+                        @error('sertifikat_belakang')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                        @enderror
+                    </div>
+                </div>
                 <div class="d-flex justify-content-start mb-3 gap-2">
                     <button type="submit" class="btn btn-primary">Simpan</button>
                     <a href="{{ url('admin/rakernas') }}" class="btn btn-secondary">Kembali</a>

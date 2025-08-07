@@ -308,6 +308,7 @@ class WebinarController extends Controller
 
         // Ganti dengan path absolut sesuai lokasi sebenarnya
         $destination = base_path('../public_html/' . $path); // sesuaikan jika Laravel di luar public_html
+        $destination = base_path('public/' . $path); // sesuaikan jika Laravel di luar public_html
 
         if (!file_exists($destination)) {
             mkdir($destination, 0755, true);

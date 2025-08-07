@@ -54,10 +54,6 @@ $url = '/admin/anggota';
                                     {{ request('status_anggota') == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
                             </select>
 
-                            {{-- <select class="form-select form-select-sm bg-light-subtle border fw-medium me-2"
-                                    style="width: auto;">
-                                    <option selected>All Status Dosen</option>
-                                </select> --}}
                             <div class="position-relative topbar-search">
                                 <input name="search" type="text"
                                     class="form-control bg-light-subtle ps-4 py-1 border fs-14" placeholder="Search..."

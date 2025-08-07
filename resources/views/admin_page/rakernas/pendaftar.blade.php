@@ -84,7 +84,7 @@ $url = '/admin/rakernas';
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($pendaftar_rakernas  as $key => $data)
+                                @foreach ($pendaftar_rakernas as $key => $data)
                                 <tr>
                                     <td>
                                         {{ $loop->iteration }}
@@ -92,7 +92,7 @@ $url = '/admin/rakernas';
                                     <td>
                                         <p class="mb-0 fw-medium fs-14">{{ $data->anggota->id_card ?? '-' }}</p>
                                     </td>
-                                    <td> 
+                                    <td>
                                         <p class="mb-0 fw-medium fs-14">{{ $data->anggota->nama_anggota ?? '-' }}</p>
                                     </td>
                                     <td>
@@ -188,17 +188,17 @@ $url = '/admin/rakernas';
                                             class="badge bg-primary-subtle text-primary fw-semibold text-uppercase">
                                             Valid
                                         </span>
-                                              <button type="button" aria-label="anchor"
+                                        <button type="button" aria-label="anchor"
                                             class="btn btn-icon btn-sm bg-primary-subtle me-1"
                                             data-bs-toggle="modal"
-                                            data-bs-target="#modalView{{ $data->id_pwe }}"
+                                            data-bs-target="#modalView{{ $data->id_prk }}"
                                             data-bs-original-title="Validasi">
                                             <i class="mdi mdi-eye-outline fs-14 text-primary"></i>
                                         </button>
                                         <!-- Modal Validasi -->
-                                        <div class="modal fade" id="modalView{{ $data->id_pwe }}"
+                                        <div class="modal fade" id="modalView{{ $data->id_prk }}"
                                             tabindex="-1"
-                                            aria-labelledby="modalView{{ $data->id_pwe }}"
+                                            aria-labelledby="modalView{{ $data->id_prk }}"
                                             aria-hidden="true">
                                             <div class="modal-dialog">
                                                 <form
@@ -208,7 +208,7 @@ $url = '/admin/rakernas';
                                                     <div class="modal-content">
                                                         <div class="modal-header">
                                                             <h5 class="modal-title"
-                                                                id="modalView{{ $data->id_pwe }}">
+                                                                id="modalView{{ $data->id_prk }}">
                                                                 Validasi Pendaftaran
                                                             </h5>
                                                             <button type="button" class="btn-close"
@@ -235,7 +235,7 @@ $url = '/admin/rakernas';
                                                                     transfer.</p>
                                                                 @endif
                                                             </div>
-                                                           
+
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-dark btn-sm"

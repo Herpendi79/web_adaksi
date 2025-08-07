@@ -7,6 +7,8 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Mail\AnggotaValidateMail;
 use App\Models\AnggotaModel;
 use App\Models\WebinarModel;
+use App\Models\PendaftarRakernasModel;
+use App\Models\RakernasModel;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -154,7 +156,7 @@ Telah terdaftar anggota calon baru di sistem ADAKSI yang menunggu proses validas
             
 📌 *Status Anggota:* Pending
         
-Mohon untuk segera melakukan validasi melalui halaman admin berikut:
+Mohon untuk segera melakukan validasi dalam 2x24 jam melalui halaman admin berikut:
 " . config('app.url') . "
 Silakan login menggunakan akun admin Anda.
             
@@ -800,7 +802,8 @@ Salam,
         $filename = $prefix . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
         // Ganti dengan path absolut sesuai lokasi sebenarnya
-        $destination = base_path('public_html/' . $path); // sesuaikan jika Laravel di luar public_html
+        $destination = base_path('../public_html/' . $path); // sesuaikan jika Laravel di luar public_html
+        $destination = base_path('public/' . $path); // sesuaikan jika Laravel di luar public_html
 
         if (!file_exists($destination)) {
             mkdir($destination, 0755, true);
@@ -900,7 +903,7 @@ Telah terdaftar peserta baru kegiatan di sistem ADAKSI yang menunggu proses vali
             
 📌 *Status Kepesertaan:* Pending
         
-Mohon untuk segera melakukan validasi melalui halaman admin berikut:
+Mohon untuk segera melakukan validasi dalam 2x24 jam melalui halaman admin berikut:
 " . config('app.url') . "
 Silakan login menggunakan akun admin Anda.
             
@@ -979,6 +982,200 @@ Salam,
             return redirect()->back()->with('success', 'Pendaftaran kegiatan berhasil, periksa WA anda untuk update selanjutnya. Salam ADAKSI!');
         } catch (\Exception $e) {
             \Log::error('Error Pendaftaran Webinar: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat pendaftaran: ' . $e->getMessage());
+        }
+    }
+
+    public function showAllRakernas(Request $request)
+    {
+        $rakernas = RakernasModel::when($request->search, function ($query) use ($request) {
+            $query->where(function ($q) use ($request) {
+                $q->where('tema', 'like', '%' . $request->search . '%')
+                    ->orWhere('tanggal_mulai', 'like', '%' . $request->search . '%')
+                    ->orWhere('tempat', 'like', '%' . $request->search . '%')
+                    ->orWhere('tanggal_selesai', 'like', '%' . $request->search . '%');
+            });
+        })
+            ->with(['pendaftar' => function ($q) {
+                $q->where('id_user', Auth::id());
+            }])
+            ->orderBy('tanggal_mulai', 'ASC')
+            ->paginate(10);
+
+        $rakernas->getCollection()->transform(function ($item) {
+            $kode_unik = rand(100, 999);
+            $item->biaya_unik = ($item->biaya ?? 0) + $kode_unik;
+            return $item;
+        });
+
+
+        $id_user = Auth::id();
+
+        // Ambil semua id_rk yang sudah didaftarkan user ini
+        $rakernas_terdaftar_ids = PendaftarRakernasModel::where('id_user', $id_user)
+            ->pluck('id_rk')
+            ->toArray();
+
+        return view('anggota_page.rakernas.index', compact('rakernas', 'rakernas_terdaftar_ids'));
+    }
+
+    public function store_registrasi_rakernas(Request $request)
+    {
+        $messages = [
+            'keterangan.required' => 'Wajib diisi.',
+            'keterangan.string' => 'Harus berupa teks.',
+            'keterangan.max' => 'Maksimal 250 karakter.',
+
+            'bukti_transfer.required' => 'Bukti transfer wajib diunggah.',
+            'bukti_transfer.file' => 'Bukti transfer harus berupa file.',
+            'bukti_transfer.mimes' => 'Bukti transfer harus berupa file JPG, JPEG, PNG, atau PDF.',
+            'bukti_transfer.max' => 'Ukuran bukti transfer maksimal 2MB.',
+        ];
+
+        $request->validate([
+            'keterangan' => 'required|string|max:255',
+            'bukti_transfer' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        ], $messages);
+
+        try {
+            $id_rk = $request->id_rk;
+            $biaya = $request->biaya;
+            $keterangan = $request->keterangan;
+            $id_user = $request->id_user ?? Auth::id(); // fallback jika id_user belum dikirim
+
+            // Ambil data user + anggota
+            $data = DB::table('users')
+                ->join('anggota', 'users.id_user', '=', 'anggota.id_user')
+                ->select(
+                    'anggota.nama_anggota',
+                    'users.email',
+                    'users.no_hp',
+                    'anggota.nip_nipppk',
+                    'anggota.status_dosen',
+                    'anggota.homebase_pt',
+                    'anggota.provinsi'
+                )
+                ->where('users.id_user', $id_user)
+                ->first();
+
+            if (!$data) {
+                return back()->with('error', 'Data user/anggota tidak ditemukan.');
+            }
+
+            // Ambil data webinar untuk validasi keberadaan
+            $rakernas = RakernasModel::findOrFail($id_rk);
+
+            // Upload file bukti transfer
+            $bukti_tf_path = null;
+            if ($request->hasFile('bukti_transfer')) {
+                $bukti_tf_path = $this->uploadFilePendaftar(
+                    $request->file('bukti_transfer'),
+                    'uploads/bukti_tf_pendaftaran'
+                );
+            }
+
+            // Simpan ke PendaftarExtModel
+            PendaftarRakernasModel::create([
+                'id_rk' => $id_rk,
+                'id_user' => $id_user ?? '-',
+                'bukti_tf' => $bukti_tf_path,
+                'keterangan' => $keterangan ?? '-',
+                'status' => 'pending',
+            ]);
+
+            $message = "🔔 *Pemberitahuan Pendaftaran Rakernas* 🔔
+
+Halo Admin 👋,
+            
+Telah terdaftar peserta baru Rakernas di sistem ADAKSI yang menunggu proses validasi. Berikut detailnya:
+            
+👤 *Nama:* " . $data->nama_anggota . "
+📧 *Email:* " . $data->email . "
+📱 *No. HP:* " . $data->no_hp . "
+🏢 *Instansi:* " . $data->homebase_pt . "
+🌍 *Provinsi:* " . $data->provinsi . "
+            
+📌 *Status Kepesertaan:* Pending
+        
+Mohon untuk segera melakukan validasi dalam 2x24 jam melalui halaman admin berikut:
+" . config('app.url') . "
+Silakan login menggunakan akun admin Anda.
+            
+Terima kasih atas kerjasamanya.
+            
+Salam,  
+*Sistem ADAKSI*";
+
+
+            // get all users with role admin
+            $users = User::whereIn('role', ['admin'])->get();
+
+            // Kirim pesan ke semua adminn
+            foreach ($users as $user) {
+                $curl = curl_init();
+
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => 'https://api.fonnte.com/send',
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'POST',
+                    CURLOPT_POSTFIELDS => array(
+                        'target' => $user->no_hp, // pastikan format nomor sudah internasional (62xxxxx)
+                        'message' => $message,
+                    ),
+                    CURLOPT_HTTPHEADER => array(
+                        'Authorization: 5ef8QqtZQtmcBLfiWth5'
+                    ),
+                ));
+
+                $response = curl_exec($curl);
+                if (curl_errno($curl)) {
+                    $error_msg = curl_error($curl);
+                    // Jika error, log atau tampilkan
+                    \Log::error('WhatsApp API Error: ' . $error_msg);
+                }
+                curl_close($curl);
+            }
+
+            // Kirim pesan ke user
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => 'https://api.fonnte.com/send',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => array(
+                    'target' => $data->no_hp, // pastikan format nomor sudah internasional (62xxxxx)
+                    'message' => "Halo " . $data->nama_anggota . "👋,\n\n" .
+                        "Terima kasih telah mendaftar *Rakernas* dengan tema *" . $rakernas->tema . "*" .
+                        ". Pendaftaran Anda sedang dalam *proses validasi* oleh admin. Silakan tunggu dalam waktu maksimal *2x24* jam.\n\n" .
+                        "Jika ada pertanyaan, Anda dapat menghubungi admin melalui email atau nomor WhatsApp yang tertera di website.\n\n" .
+                        "Salam,\n*Sistem ADAKSI*",
+                ),
+                CURLOPT_HTTPHEADER => array(
+                    'Authorization: 5ef8QqtZQtmcBLfiWth5'
+                ),
+            ));
+
+            $response = curl_exec($curl);
+            if (curl_errno($curl)) {
+                $error_msg = curl_error($curl);
+                // Jika error, log atau tampilkan
+                \Log::error('WhatsApp API Error: ' . $error_msg);
+            }
+            curl_close($curl);
+
+            return redirect()->back()->with('success', 'Pendaftaran rakernas berhasil, periksa WA anda untuk update selanjutnya. Salam ADAKSI!');
+        } catch (\Exception $e) {
+            \Log::error('Error Pendaftaran Rakernas: ' . $e->getMessage());
             return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat pendaftaran: ' . $e->getMessage());
         }
     }

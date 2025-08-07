@@ -26,7 +26,7 @@
                      <a href="{{ url('anggota/webinar') }}" class="tp-link">Webinar</a>
                  </li>
                  <li>
-                     <a href="#" class="tp-link">Rakernas</a>
+                     <a href="{{ url('anggota/rakernas') }}" class="tp-link">Rakernas</a>
                  </li>
                  <li>
                      <a href="#" class="tp-link">Munas</a>

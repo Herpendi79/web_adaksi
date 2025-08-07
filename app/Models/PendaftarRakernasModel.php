@@ -10,6 +10,7 @@ class PendaftarRakernasModel extends Model
     protected $primaryKey = 'id_prk';
     protected $fillable = [
         'id_rk',
+        'id_user',
         'bukti_tf',
         'keterangan',
         'status',
@@ -26,5 +27,12 @@ class PendaftarRakernasModel extends Model
     {
         return $this->belongsTo(AnggotaModel::class, 'id_user', 'id_user');
     }
-
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'id_user', 'id_user');
+    }
+    public function absensi()
+    {
+        return $this->hasOne(AbsensiRakernasModel::class, 'id_prk', 'id_prk');
+    }
 }

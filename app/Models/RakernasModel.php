@@ -14,7 +14,9 @@ class RakernasModel extends Model
         'tanggal_mulai',
         'tanggal_selesai',
         'biaya',
-        'fasilitas'
+        'fasilitas',
+        'sertifikat_depan',
+        'sertifikat_belakang'
     ];
 
     public $timestamps = true;
