@@ -90,7 +90,7 @@ $url = '/admin/calonanggota';
                                     <th>Dosen</th>
                                     <th>PT</th>
                                     <th>Status</th>
-                                    <th>Action</th>
+                                 <!--   <th>Action</th> -->
                                 </tr>
                             </thead>
                             <tbody>
@@ -136,8 +136,8 @@ $url = '/admin/calonanggota';
                                             class="badge bg-warning-subtle text-warning fw-semibold text-uppercase">{{ $data->status_anggota }}</span>
                                         @endif
                                     </td>
-                                    <td>
-                                        @if ($data->status_anggota == 'pending')
+                               <td>
+                                {{--        @if ($data->status_anggota == 'pending')
                                         <!-- Tombol Validasi -->
                                         <button type="button" aria-label="anchor"
                                             class="btn btn-icon btn-sm bg-info-subtle me-1"
@@ -234,10 +234,12 @@ $url = '/admin/calonanggota';
                                             data-bs-toggle="tooltip" data-bs-original-title="Delete">
                                             <i class="mdi mdi-delete fs-14 text-danger"></i>
                                         </a>
-                                        @endif
+                                        @endif --}}
 
 
                                     </td>
+                               
+                                
                                 </tr>
                                 @endforeach
                             </tbody>

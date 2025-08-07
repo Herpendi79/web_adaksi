@@ -6,9 +6,9 @@
     <meta charset="utf-8" />
     <title>
         @if (isset($title))
-        {{ $title }} - {{ config('app.name') }}
+            {{ $title }} - {{ config('app.name') }}
         @else
-        Masuk - {{ config('app.name') }}
+            Masuk - {{ config('app.name') }}
         @endif
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,6 +21,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
 
     <!-- App favicon -->
     <link rel="shortcut icon" href="{{ url('/') }}/assets/images/fav.ico">
@@ -67,19 +69,30 @@
                                             </div>
 
                                             <div class="auth-title-section mb-4 text-lg-start text-center">
-                                                <h3 class="text-dark fw-semibold mb-3">Selamat Datang Kembali!</h3>
-                                                <!-- session alert -->
+                                                <h3 class="text-dark fw-semibold text-center mb-3">Selamat Datang
+                                                    Kembali!</h3>
+
+                                                {{-- Flash Success --}}
                                                 @if (session('success'))
-                                                <div class="alert alert-success">
-                                                    {{ session('success') }}
-                                                </div>
+                                                    <div class="alert alert-success alert-dismissible fade show"
+                                                        role="alert">
+                                                        {{ session('success') }}
+                                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                            aria-label="Close"></button>
+                                                    </div>
                                                 @endif
+
+                                                {{-- Flash Error --}}
                                                 @if (session('error'))
-                                                <div class="alert alert-danger">
-                                                    {{ session('error') }}
-                                                </div>
+                                                    <div class="alert alert-danger alert-dismissible fade show"
+                                                        role="alert">
+                                                        {{ session('error') }}
+                                                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                                            aria-label="Close"></button>
+                                                    </div>
                                                 @endif
                                             </div>
+
                                             <div class="pt-0">
                                                 <form action="{{ url('/login') }}" class="my-4" method="POST">
                                                     @csrf
@@ -90,28 +103,29 @@
                                                             type="email" id="emailaddress" name="email"
                                                             placeholder="Enter your email" value="{{ old('email') }}">
                                                         @error('email')
-                                                        <div class="invalid-feedback">
-                                                            {{ $message }}
-                                                        </div>
+                                                            <div class="invalid-feedback">
+                                                                {{ $message }}
+                                                            </div>
                                                         @enderror
                                                     </div>
 
                                                     <div class="form-group mb-3">
                                                         <label for="password" class="form-label">Password</label>
-                                                        <input class="form-control @error('password') is-invalid @enderror"
+                                                        <input
+                                                            class="form-control @error('password') is-invalid @enderror"
                                                             type="password" id="password" name="password"
                                                             placeholder="Enter your password">
                                                         @error('password')
-                                                        <div class="invalid-feedback">
-                                                            {{ $message }}
-                                                        </div>
+                                                            <div class="invalid-feedback">
+                                                                {{ $message }}
+                                                            </div>
                                                         @enderror
                                                     </div>
 
                                                     <div class="form-group d-flex mb-3">
                                                         <div class="col-sm-12 text-end">
-                                                            <a class='text-muted fs-14'
-                                                                href='/forget-password'>Forgot password?</a>
+                                                            <a class='text-muted fs-14' href='/forget-password'>Forgot
+                                                                password?</a>
                                                         </div>
                                                     </div>
 
@@ -124,6 +138,22 @@
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    <br>
+                                                    <div class="form-group mb-0 row">
+                                                        <div class="col-12">
+                                                            <div class="d-grid">
+                                                                <a href="{{ route('auth.google') }}"
+                                                                    class="btn btn-light fw-semibold d-flex align-items-center justify-content-center border">
+                                                                    <img src="https://developers.google.com/identity/images/g-logo.png"
+                                                                        alt="Google Logo"
+                                                                        style="width: 20px; height: 20px; margin-right: 10px;">
+                                                                    Masuk dengan Google
+                                                                </a>
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
                                                 </form>
 
                                                 <div class="text-center text-muted">

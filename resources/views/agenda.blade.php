@@ -86,6 +86,7 @@
                 </div>
                 <!-- Post Content -->
                 <div class="article-post serif-font">
+                    @if($agenda->hari!='0' && $agenda->pukul!='0')
                     <p>🗓
                         {{ \Carbon\Carbon::parse($agenda->tanggal_mulai)->translatedFormat('l, d F Y') }}
 
@@ -95,9 +96,11 @@
                         🕘 Pukul {{ $agenda->pukul }}
                         📍 Via Zoom Meeting
                     </p>
+                    @endif
 
                     <p>{!! $agenda->deskripsi !!}</p>
-
+                    
+                    @if($agenda->hari!='0' && $agenda->pukul!='0')
                     @if ($agenda->fasilitas->count())
                     <p>🎁 Fasilitas Peserta:</p>
                     <ul>
@@ -106,19 +109,24 @@
                         @endforeach
                     </ul>
                     @endif
+                    @endif
 
                     <hr>
                     @if ($agenda->status == 'publish')
+                    @if($agenda->hari!='0' && $agenda->pukul!='0')
                     <p>🔗 <strong>Link Registrasi untuk Anggota ADAKSI</strong> :
                         <a href="/login" target="_blank">Klik Disini!</a>
                     </p>
                     <p>🔗 <strong>Link Registrasi untuk NON ADAKSI</strong> :
                         <a href="{{ url('/registrasi/' . $agenda->id_wb) }}" target="_blank">Klik Disini!</a>
                     </p>
+                    @endif
                     @else
+                    @if($agenda->hari!='0' && $agenda->pukul!='0')
                     <p>🔗 <strong>Link Download Sertifikat untuk NON ADAKSI</strong> :
                         <a href="{{ url('/download/') }}" target="_blank">Klik Disini!</a>
                     </p>
+                    @endif
                     @endif
                     <hr>
                     <p>💬 *Yuk gabung di channel WA ADAKSI untuk info lengkap dan update acara!
@@ -133,7 +141,7 @@
                 <!-- Post Date -->
                 <p>
                     <small>
-                        <span class="post-date"><time class="post-date" datetime="2025-04-24">13 Juni 2025</time></span>
+                        <span class="post-date"><time class="post-date" datetime="2025-04-24"> {{ \Carbon\Carbon::parse($agenda->created_at)->translatedFormat('l, d F Y') }}</time></span>
 
                     </small>
                 </p>

@@ -120,8 +120,10 @@
                             </div>
                             <h4 class="card-title text-center">Form Pendataan Anggota Tetap ADAKSI
                             </h4>
-                          <p class="card-title-desc text-center"> Panduan cara pendaftaran dapat dilihat pada video berikut: 
-                                <strong><a href="https://youtu.be/MjG9OuX2mvE" target="blank">Klik disini</a></strong></p>
+                            <p class="card-title-desc text-center"> Panduan cara pendaftaran dapat dilihat pada video
+                                berikut:
+                                <strong><a href="https://youtu.be/MjG9OuX2mvE" target="blank">Klik disini</a></strong>
+                            </p>
                         </div>
 
                         <form action="{{ url('anggota/daftar') }}" method="POST" enctype="multipart/form-data">
@@ -135,9 +137,9 @@
                                     id="nama" name="nama_anggota" placeholder="Masukkan nama lengkap Anda"
                                     value="{{ old('nama_anggota') }}">
                                 @error('nama_anggota')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
                                 @enderror
                             </div>
 
@@ -146,12 +148,13 @@
                                 <label for="email" class="form-label m-0">Email</label>
                                 <p class="text-muted mb-1" style="font-size: 0.775rem;">Email yang valid untuk
                                     pengiriman informasi</p>
-                                <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email"
-                                    placeholder="Masukkan email Anda" value="{{ old('email') }}">
+                                <input type="email" class="form-control @error('email') is-invalid @enderror"
+                                    id="email" name="email" placeholder="Masukkan email Anda"
+                                    value="{{ old('email') }}">
                                 @error('email')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
                                 @enderror
                             </div>
 
@@ -159,24 +162,27 @@
                                 {{-- NIP/NIPPPK --}}
                                 <div class="mb-3 col-md-6">
                                     <label for="nip_nippk" class="form-label mb-1">NIP/NIPPPK</label>
-                                    <input type="tel" class="form-control @error('nip_nipppk') is-invalid @enderror" id="nip_nippk" name="nip_nipppk"
-                                        placeholder="Masukkan NIP/NIPPPK Anda" value="{{ old('nip_nipppk') }}">
+                                    <input type="tel" class="form-control @error('nip_nipppk') is-invalid @enderror"
+                                        id="nip_nippk" name="nip_nipppk" placeholder="Masukkan NIP/NIPPPK Anda"
+                                        value="{{ old('nip_nipppk') }}">
                                     @error('nip_nipppk')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
                                     @enderror
                                 </div>
 
                                 {{-- Nomor HP / WA --}}
                                 <div class="mb-3 col-md-6">
-                                   <label for="no_hp" class="form-label mb-1">Nomor HP (<strong>Wajib WA</strong>)</label>
-                                    <input type="tel" class="form-control @error('no_hp') is-invalid @enderror" id="no_hp" name="no_hp"
-                                        placeholder="Contoh : 081251226666" value="{{ old('no_hp') }}">
+                                    <label for="no_hp" class="form-label mb-1">Nomor HP (<strong>Wajib
+                                            WA</strong>)</label>
+                                    <input type="tel" class="form-control @error('no_hp') is-invalid @enderror"
+                                        id="no_hp" name="no_hp" placeholder="Contoh : 081251226666"
+                                        value="{{ old('no_hp') }}">
                                     @error('no_hp')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
                                     @enderror
                                 </div>
                             </div>
@@ -185,27 +191,30 @@
                                 {{-- Status Dosen --}}
                                 <div class="mb-3 col-md-6">
                                     <label for="status_dosen" class="form-label mb-1">Status Dosen</label>
-                                    <select class="form-select @error('status_dosen') is-invalid @enderror" id="status_dosen" name="status_dosen">
+                                    <select class="form-select @error('status_dosen') is-invalid @enderror"
+                                        id="status_dosen" name="status_dosen">
                                         <option value="" disabled selected>-- Pilih status dosen Anda --</option>
                                         <option value="Dosen PTN">Dosen PTN</option>
                                         <option value="Dosen DPK">Dosen DPK</option>
                                     </select>
                                     @error('status_dosen')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
                                     @enderror
                                 </div>
 
                                 {{-- Homebase PT --}}
                                 <div class="mb-3 col-md-6">
                                     <label for="homebase_pt" class="form-label mb-1">Homebase PT</label>
-                                    <input type="text" class="form-control @error('homebase_pt') is-invalid @enderror" id="homebase_pt" name="homebase_pt"
-                                        placeholder="Masukkan nama PT Anda" value="{{ old('homebase_pt') }}">
+                                    <input type="text"
+                                        class="form-control @error('homebase_pt') is-invalid @enderror"
+                                        id="homebase_pt" name="homebase_pt" placeholder="Masukkan nama PT Anda"
+                                        value="{{ old('homebase_pt') }}">
                                     @error('homebase_pt')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
+                                        <div class="invalid-feedback">
+                                            {{ $message }}
+                                        </div>
                                     @enderror
                                 </div>
                             </div>
@@ -213,86 +222,65 @@
                             {{-- Provinsi --}}
                             <div class="mb-3">
                                 <label for="provinsi" class="form-label mb-1">Provinsi</label>
-                                <select class="form-select @error('provinsi') is-invalid @enderror" id="provinsi" name="provinsi">
+                                <select class="form-select @error('provinsi') is-invalid @enderror" id="provinsi"
+                                    name="provinsi">
                                     <option value="">-- Pilih Provinsi --</option>
                                     @php
-                                    $daftar_provinsi = [
-                                    'Aceh',
-                                    'Bali',
-                                    'Bangka Belitung',
-                                    'Banten',
-                                    'Bengkulu',
-                                    'Daerah Istimewa Yogyakarta',
-                                    'DKI Jakarta',
-                                    'Gorontalo',
-                                    'Jambi',
-                                    'Jawa Barat',
-                                    'Jawa Tengah',
-                                    'Jawa Timur',
-                                    'Kalimantan Barat',
-                                    'Kalimantan Selatan',
-                                    'Kalimantan Tengah',
-                                    'Kalimantan Timur',
-                                    'Kalimantan Utara',
-                                    'Kepulauan Riau',
-                                    'Lampung',
-                                    'Maluku',
-                                    'Maluku Utara',
-                                    'Nusa Tenggara Barat',
-                                    'Nusa Tenggara Timur',
-                                    'Papua',
-                                    'Papua Barat',
-                                    'Papua Barat Daya',
-                                    'Papua Pegunungan',
-                                    'Papua Selatan',
-                                    'Papua Tengah',
-                                    'Riau',
-                                    'Sulawesi Barat',
-                                    'Sulawesi Selatan',
-                                    'Sulawesi Tengah',
-                                    'Sulawesi Tenggara',
-                                    'Sulawesi Utara',
-                                    'Sumatera Barat',
-                                    'Sumatera Selatan',
-                                    'Sumatera Utara'
-                                    ];
+                                        $daftar_provinsi = [
+                                            'Aceh',
+                                            'Bali',
+                                            'Bangka Belitung',
+                                            'Banten',
+                                            'Bengkulu',
+                                            'Daerah Istimewa Yogyakarta',
+                                            'DKI Jakarta',
+                                            'Gorontalo',
+                                            'Jambi',
+                                            'Jawa Barat',
+                                            'Jawa Tengah',
+                                            'Jawa Timur',
+                                            'Kalimantan Barat',
+                                            'Kalimantan Selatan',
+                                            'Kalimantan Tengah',
+                                            'Kalimantan Timur',
+                                            'Kalimantan Utara',
+                                            'Kepulauan Riau',
+                                            'Lampung',
+                                            'Maluku',
+                                            'Maluku Utara',
+                                            'Nusa Tenggara Barat',
+                                            'Nusa Tenggara Timur',
+                                            'Papua',
+                                            'Papua Barat',
+                                            'Papua Barat Daya',
+                                            'Papua Pegunungan',
+                                            'Papua Selatan',
+                                            'Papua Tengah',
+                                            'Riau',
+                                            'Sulawesi Barat',
+                                            'Sulawesi Selatan',
+                                            'Sulawesi Tengah',
+                                            'Sulawesi Tenggara',
+                                            'Sulawesi Utara',
+                                            'Sumatera Barat',
+                                            'Sumatera Selatan',
+                                            'Sumatera Utara',
+                                        ];
                                     @endphp
 
-                                    @foreach($daftar_provinsi as $prov)
-                                    <option value="{{ $prov }}" {{ old('provinsi') == $prov ? 'selected' : '' }}>
-                                        {{ $prov }}
-                                    </option>
+                                    @foreach ($daftar_provinsi as $prov)
+                                        <option value="{{ $prov }}"
+                                            {{ old('provinsi') == $prov ? 'selected' : '' }}>
+                                            {{ $prov }}
+                                        </option>
                                     @endforeach
                                 </select>
                                 @error('provinsi')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
                                 @enderror
                             </div>
-
-                            {{-- Bukti Transfer --}}
-                            <div class="mb-3">
-                                <label for="bukti_transfer" class="form-label mb-1">Bukti Transfer</label>
-                                <input type="file"
-                                    class="form-control @error('bukti_transfer') is-invalid @enderror"
-                                    id="bukti_transfer"
-                                    name="bukti_transfer">
-                                <br>
-                                 <small class="form-text text-danger">
-                                    *Transfer senilai <strong class="text-success">Rp 100.{{ number_format($kode_unik, 0, ',', '.') }}</strong> (pastikan persis hingga 3 digit terakhir)
-                                </small><br>
-                                <small class="form-text text-danger">
-                                    *Transfer ke <strong class="text-success">312601035654536</strong> , Rek BRI, a.n <strong class="text-success">Nindya Adiasti</strong> (Bendahara DPP ADAKSI)
-                                </small>
-
-                                @error('bukti_transfer')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                                @enderror
-                            </div>
-
 
                             <button type="submit" class="btn btn-dark w-100">Daftar Anggota</button>
                             <a href="{{ url('/') }}" class="btn btn-light w-100 mt-2">Kembali</a>
@@ -343,20 +331,20 @@
 
     <!-- App js-->
     <script src="{{ url('/') }}/assets-template/js/app.js"></script>
-    
-    <!-- Tambahkan CDN SweetAlert -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-@if(session('success'))
-<script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Berhasil!',
-        text: "{{ session('success') }}",
-        confirmButtonText: 'OK'
-    });
-</script>
-@endif
+    <!-- Tambahkan CDN SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @if (session('success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: "{{ session('success') }}",
+                confirmButtonText: 'OK'
+            });
+        </script>
+    @endif
 
 
 

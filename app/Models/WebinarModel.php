@@ -24,7 +24,8 @@ class WebinarModel extends Model
         'flyer',
         'sertifikat_depan',
         'sertifikat_belakang',
-        'status'
+        'status',
+        'id_rek'
     ];
     public $timestamps = true;
 
@@ -39,5 +40,9 @@ class WebinarModel extends Model
     public function sertifikat()
     {
         return $this->hasMany(SertifikatModel::class, 'id_wb', 'id_wb');
+    }
+    public function rekening()
+    {
+        return $this->belongsTo(RekeningModel::class, 'id_rek', 'id_rek');
     }
 }

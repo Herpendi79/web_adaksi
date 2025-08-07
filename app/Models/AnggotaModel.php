@@ -17,7 +17,11 @@ class AnggotaModel extends Model
         'provinsi',
         'foto',
         'status_anggota',
+        'snap',
+        'order_id',
+        'biaya',
         'keterangan',
+        'tgl_keanggotaan',
         'bukti_tf_pendaftaran',
         'no_urut',
         'id_card'
@@ -35,4 +39,5 @@ class AnggotaModel extends Model
     {
         return $this->hasOne(PendaftarRakernasModel::class, 'id_user', 'id_user');
     }
+    
 }

@@ -1,13 +1,16 @@
 <?php
 
+use App\Http\Controllers\AduanController;
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebinarController;
 use App\Http\Controllers\RakernasController;
+use App\Http\Controllers\RekeningController;
+use App\Http\Controllers\AuthController;
 
 Route::prefix('admin')
-    ->middleware(['access:admin|superadmin'])
+    ->middleware(['access:admin|superadmin|hukum'])
     ->group(function () {
         // route untuk admin pengaturan
         Route::get('setting', [DashboardController::class, 'setting'])->name('admin.setting');
@@ -70,6 +73,18 @@ Route::prefix('admin')
                 Route::post('validasi/{id}', 'validasi')->where('id', '[0-9]+');
                 Route::post('validasiPendaftar/{id}', 'validasiPendaftar')->where('id', '[0-9]+');
             });
+        // Rekening Manajement
+        Route::prefix('rekening')
+            ->controller(RekeningController::class)
+            ->group(function () {
+                Route::get('/', 'showAllRekening');
+                Route::get('create', 'create')->name('rekening.create');
+                Route::post('/', 'store')->name('rekening.store');
+                Route::post('hapus/{id}', 'hapus')->where('id', '[0-9]+');
+                Route::get('edit/{id}', 'edit')->name('admin.rekening.edit');
+                Route::put('{id}', 'update')->name('rekening.update');
+            });
+
         // Rakernas Manajement
         Route::prefix('rakernas')
             ->controller(RakernasController::class)
@@ -91,9 +106,19 @@ Route::prefix('admin')
                 Route::get('pendaftar/{id}', 'pendaftar')->name('rakernas.pendaftar');
                 Route::post('validasi/{id}', 'validasi')->where('id', '[0-9]+');
                 Route::post('validasiPendaftar/{id}', 'validasiPendaftar')->where('id', '[0-9]+');
+                Route::get('export-pendaftar/{id}', 'exportPendaftar')->name('rakernas.export_pendaftar');
             });
 
-
+        // Aduan Manajement
+        Route::prefix('aduan')
+            ->controller(AduanController::class)
+            ->group(function () {
+                Route::get('/', 'showAllAduanOnAdmin');
+                Route::post('store_tanggapan_admin', 'store_tanggapan_admin')->name('aduan.store_tanggapan_admin');
+                Route::post('selesai/{id}', 'selesai')->name('selesai')->where('id', '[0-9]+');
+            });
+            
+        Route::post('store_tanggapan', [AduanController::class, 'store_tanggapan'])->name('aduan.store_tanggapan');
 
         Route::prefix('calonanggota')
             ->controller(AnggotaController::class)
@@ -134,4 +159,7 @@ Route::prefix('admin')
 
         //  Route::get('/rekap-per-provinsi/excel', [AnggotaController::class, 'exportRekapPerProvinsi'])->name('rekap-per-provinsi.excel');
         Route::get('/rekap/excel', [AnggotaController::class, 'exportGabungan'])->name('rekap.excel');
+
+        Route::match(['get', 'post'], '/login', [AuthController::class, 'login'])->name('login');
+        Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     });

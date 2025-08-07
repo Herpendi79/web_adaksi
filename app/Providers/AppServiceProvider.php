@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\DB;
 use App\Models\AnggotaModel;
+use App\Models\WebinarModel;
 use Carbon\Carbon;
 use Illuminate\Pagination\Paginator;
 

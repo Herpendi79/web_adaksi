@@ -40,7 +40,13 @@ $url = '/admin/webinar';
                         <div>
                             <h5 class="card-title mb-1">
                                 Total Dana Diterima
-                                <span class="text-danger">Rp. {{ number_format($total_masuk[$data->id_wb] ?? 0, 0, ',', '.') }}</span>
+                                <span class="text-danger">
+                                    Rp.
+                                    {{ isset($data) && isset($data->id_rk) && isset($total_masuk[$data->id_rk]) 
+                                        ? number_format($total_masuk[$data->id_wb], 0, ',', '.') 
+                                        : '0' 
+                                    }}
+                                </span>
                             </h5>
 
                         </div>
@@ -63,7 +69,10 @@ $url = '/admin/webinar';
                                 class="btn btn-primary btn-sm d-flex align-items-center gap-1 ms-2">
                                 <i class="mdi mdi-refresh"></i> Refresh
                             </a>
-
+                            <a href="{{ url('admin/webinar/') }}"
+                                class="btn btn-success btn-sm d-flex align-items-center gap-1 ms-2">
+                                <i class="mdi mdi-arrow-left"></i> Kembali
+                            </a>
 
                         </form>
                     </div>
@@ -154,7 +163,7 @@ $url = '/admin/webinar';
                                                                         class="img-fluid rounded"
                                                                         style="max-width: 300px;">
                                                                 </div>
-                                                                <p>Jumlah Transfer : <strong>Rp. {{ number_format($data->biaya, 0, ',', '.') }}</strong></p>
+                                                                <!-- <p>Jumlah Transfer : <strong>Rp. {{ number_format($data->biaya, 0, ',', '.') }}</strong></p> -->
                                                                 <p>Keterangan Transfer : <strong>{{ $data->keterangan }}</strong></p>
                                                                 @else
                                                                 <p class="text-muted mb-2">Belum ada bukti
@@ -194,7 +203,7 @@ $url = '/admin/webinar';
                                             class="badge bg-primary-subtle text-primary fw-semibold text-uppercase">
                                             Valid
                                         </span>
-                                              <button type="button" aria-label="anchor"
+                                        <button type="button" aria-label="anchor"
                                             class="btn btn-icon btn-sm bg-primary-subtle me-1"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalView{{ $data->id_pwe }}"
@@ -223,11 +232,11 @@ $url = '/admin/webinar';
                                                         </div>
                                                         <div class="modal-body">
                                                             <div class="mb-3 w-100">
+                                                                @if ($data->bukti_tf)
                                                                 <label class="form-label">Bukti Transfer
                                                                     :</label>
                                                                 <a href="{{ asset('uploads/bukti_tf_pendaftaran/' . $data->bukti_tf) }}"
                                                                     target="_blank">Lihat Bukti Transfer</a>
-                                                                @if ($data->bukti_tf)
                                                                 <div
                                                                     class="mb-2 d-flex justify-content-center">
                                                                     <img src="{{ asset('uploads/bukti_tf_pendaftaran/' . $data->bukti_tf) }}"
@@ -238,11 +247,10 @@ $url = '/admin/webinar';
                                                                 <p>Jumlah Transfer : <strong>Rp. {{ number_format($data->biaya, 0, ',', '.') }}</strong></p>
                                                                 <p>Keterangan Transfer : <strong>{{ $data->keterangan }}</strong></p>
                                                                 @else
-                                                                <p class="text-muted mb-2">Belum ada bukti
-                                                                    transfer.</p>
+                                                                <p class="text-muted mb-2">Kegiatan gratis tanpa biaya</p>
                                                                 @endif
                                                             </div>
-                                                           
+
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-dark btn-sm"

@@ -10,6 +10,7 @@ use App\Models\WebinarModel;
 use App\Models\User;
 use App\Models\PendaftarExtModel;
 use App\Models\FasilitasModel;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -25,7 +26,7 @@ class AuthController extends Controller
             $credentials = $request->only('email', 'password');
             if (Auth::attempt($credentials)) {
                 $user = Auth::user();
-                if ($user->role === 'admin') {
+                if ($user->role === 'admin' || $user->role === 'hukum') {
                     return redirect()->intended('admin/dashboard');
                 } elseif ($user->role === 'anggota') {
                     $id_user = $user->id_user;
@@ -72,7 +73,7 @@ class AuthController extends Controller
 
 
             // bikin token reset password
-            $token = bin2hex(random_bytes(8)); // Membuat token acak
+            $token = bin2hex(random_bytes(4)); // Membuat token acak
 
             // ubah password
             $anggota->password = bcrypt($token); // Simpan token sebagai password baru
@@ -84,7 +85,7 @@ class AuthController extends Controller
 
 Kami menerima permintaan untuk mengatur ulang password akun Anda di Sistem ADAKSI. Jika Anda tidak meminta ini, abaikan pesan ini.
 
-Berikut adalah *password baru*  Anda: $token
+Berikut adalah *password baru* Anda: $token
 
 Silakan masuk ke akun Anda dengan password baru ini dan ubah password Anda segera setelah login sistem.
             
@@ -177,7 +178,8 @@ Salam,
         return view('guest_page.fasilitas_download', compact('pendaftar', 'fasilitas'));
     }
 
-    public function fasilitasSertifikat($id){
+    public function fasilitasSertifikat($id)
+    {
 
         $pendaftar = session('pendaftar');
 
@@ -192,12 +194,60 @@ Salam,
             ->first();
 
         return view('components.sertifikat', compact('webinar', 'pendaftar'));
-
     }
 
     public function clearSession()
-{
-    session()->forget(['pendaftar', 'fasilitas']);
-    return redirect('/daftar-anggota');
-}
+    {
+        session()->forget(['pendaftar', 'fasilitas']);
+        return redirect('/daftar-anggota');
+    }
+
+    public function google_redirect()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function google_callback()
+    {
+        $googleUser = Socialite::driver('google')->user();
+
+        $user = User::whereEmail($googleUser->email)->first();
+
+        if (!$user) {
+            return redirect('/login')->withErrors([
+                'email' => 'Email tidak terdaftar. Silakan daftar anggota terlebih dahulu.',
+            ]);
+        }
+
+        // Login manual tanpa password
+        Auth::login($user);
+
+        $user = Auth::user();
+        if ($user->role === 'admin' || $user->role === 'hukum') {
+            return redirect()->intended('admin/dashboard');
+        } elseif ($user->role === 'anggota') {
+            $id_user = $user->id_user;
+            $getAnggota = AnggotaModel::where('id_user', $id_user)->first();
+
+            if ($getAnggota->status_anggota === 'pending') {
+                Auth::logout();
+                return redirect('/login')->withErrors([
+                    'email' => 'Akun Anda masih dalam proses validasi. Silakan tunggu maksimal 2x24 jam sejak submit pendaftaran.',
+                ]);
+            }
+
+            if ($getAnggota->status_anggota === 'nonaktif') {
+                Auth::logout();
+                return redirect('/login')->withErrors([
+                    'email' => 'Akun Anda telah Non Aktif. Silakan hubungi admin untuk informasi lebih lanjut.',
+                ]);
+            }
+
+            return redirect()->intended('anggota/dashboard');
+        }
+
+        return redirect('/login')->withErrors([
+            'email' => 'Role pengguna tidak dikenali.',
+        ]);
+    }
 }

@@ -109,6 +109,7 @@ $url = '/admin/anggota';
                                                 {{ $data->nama_anggota }}
                                             </p>
                                             <p class="text-muted fs-13 mb-0">{{ $data->user->email }}</p>
+                                            <p class="text-muted fs-13 mb-0">{{ $data->id_card }}</p>
                                         </div>
                                     </td>
                                     <td>

@@ -3,6 +3,8 @@
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Routing\Router;
+use App\Http\Controllers\TripayCallbackController;
 
 
 // Auth Routes
@@ -30,3 +32,10 @@ Route::get('/tampil-anggota', [App\Http\Controllers\AnggotaController::class, 't
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
 });
+
+
+Route::get('/auth-google-redirect', [AuthController::class, 'google_redirect'])->name('auth.google');
+Route::get('/auth-google-callback', [AuthController::class, 'google_callback']);
+
+
+//app(Router::class)->post('callback', [TripayCallbackController::class, 'handle'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);

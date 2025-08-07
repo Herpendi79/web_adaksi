@@ -93,11 +93,25 @@
 
         .tanggal_registrasi {
             position: absolute;
+            bottom: 6.7%;
+            left: 38%;
+            font-size: 4pt;
+            color: #ffffff;
+            z-index: 3;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-weight: bold;
+        }
+
+        .tanggal_berlaku {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-weight: bold;
+            position: absolute;
             bottom: 4%;
-            left: 12%;
+            left: 12.6%;
             font-size: 5pt;
             color: #ffffff;
             z-index: 3;
+            font-size: 4pt;
         }
 
         .page-break {
@@ -120,6 +134,7 @@
         <div class="container">
             <img src="/assets/images/belakang.png" class="background">
             <div class="tanggal_registrasi">{{ $data['created_at'] }}</div>
+            <div class="tanggal_berlaku">Berlaku hingga : {{ $data['masa_berlaku_sampai'] }}</div>
         </div>
     </div>
 </body>

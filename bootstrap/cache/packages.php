@@ -25,22 +25,22 @@
       0 => 'Laravel\\Sail\\SailServiceProvider',
     ),
   ),
+  'laravel/socialite' => 
+  array (
+    'aliases' => 
+    array (
+      'Socialite' => 'Laravel\\Socialite\\Facades\\Socialite',
+    ),
+    'providers' => 
+    array (
+      0 => 'Laravel\\Socialite\\SocialiteServiceProvider',
+    ),
+  ),
   'laravel/tinker' => 
   array (
     'providers' => 
     array (
       0 => 'Laravel\\Tinker\\TinkerServiceProvider',
-    ),
-  ),
-  'maatwebsite/excel' => 
-  array (
-    'aliases' => 
-    array (
-      'Excel' => 'Maatwebsite\\Excel\\Facades\\Excel',
-    ),
-    'providers' => 
-    array (
-      0 => 'Maatwebsite\\Excel\\ExcelServiceProvider',
     ),
   ),
   'mckenziearts/laravel-notify' => 

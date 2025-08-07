@@ -4,14 +4,31 @@ use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebinarController;
+use App\Http\Controllers\TripayController;
+use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\TripayCallbackController;
+use App\Http\Middleware\VerifyCsrfToken;
 
 //Route::get('/', function () {
-  //  return view('welcome');
+//  return view('welcome');
 //});
 
-Route::get('/real-daftar-anggota', function () {
-    return view('guest_page.real_anggota_daftar_form');
+
+
+/*Route::get('/daftar-anggota-adaksi', function () {
+    return view('guest_page.anggota_daftar_adaksi');
     //  return view('guest_page.anggota_daftar_form');
+}); */
+/*Route::get('/real-daftar-anggota', function () {
+    return view('guest_page.real_anggota_daftar_form');
+});*/
+
+Route::get('/daftar-anggota', function () {
+    return view('guest_page.anggota_tetap_daftar_form');
+});
+
+Route::get('/daftar-anggota-tetap', function () {
+    return view('guest_page.anggota_tetap_daftar_form');
 });
 
 Route::get('/daftar-anggota', [WebinarController::class, 'daftar'])->name('daftar');
@@ -103,3 +120,49 @@ Route::prefix('anggota')
     ->group(function () {
         Route::post('/daftar', 'store')->name('anggota.store');
     });
+
+
+
+Route::get('/anggota/pembayaran/{snapToken}', function ($snapToken) {
+    $anggota = \App\Models\AnggotaModel::where('snap', $snapToken)->first();
+
+    return view('guest_page.pembayaran', [
+        'snapToken' => $snapToken,
+        'biaya' => $anggota?->biaya ?? 0,
+        'nama' => $anggota?->nama_anggota ?? 'Bapak/Ibu Dosen',
+        'id_user' => $anggota?->id_user ?? null,
+        'status_anggota' => $anggota?->status_anggota ?? 'tidak_ada',
+    ]);
+})->name('anggota.pembayaran');
+
+Route::get('/validasi-pembayaran/{snapToken}', [AnggotaController::class, 'validasiBySnap'])->name('anggota.validasi');
+Route::get('/cek-expired/{snapToken}', [AnggotaController::class, 'cekDanHapusJikaExpired']);
+
+
+
+//route Tripay
+Route::post('daftar_tripay', [TripayController::class, 'store_anggota'])->name('store_anggota');
+Route::get('/bayar_anggota/{snapToken}', [TripayController::class, 'bayar'])->name('bayar_anggota');
+Route::post('transaction', [TransactionController::class, 'store_pembayaran'])->name('transaction.store_pembayaran');
+
+Route::get('bayar_anggota_show/{reference}', function ($reference) {
+    $anggota = \App\Models\AnggotaModel::where('order_id', $reference)->first();
+
+    $tripay = new TripayController;
+    $detail = $tripay->detail_transaction($reference);
+
+    return view('guest_page.bayar_anggota_show', [
+        'detail' => $detail,
+        'reference' => $reference,
+        'biaya' => $anggota?->biaya ?? 0,
+        'nama' => $anggota?->nama_anggota ?? 'Bapak/Ibu Dosen',
+        'id_user' => $anggota?->id_user ?? null,
+        'status_anggota' => $anggota?->status_anggota ?? 'tidak_ada',
+    ]);
+})->name('bayar_anggota_show');
+
+Route::get('/cek-status/{reference}', [TripayController::class, 'cek_status']);
+
+Route::get('/status-transaksi/{reference}', [TripayController::class, 'status_ajax']);
+
+//Route::get('/cek-expired/{id_user}', [TripayController::class, 'hapusJikaExpired']);

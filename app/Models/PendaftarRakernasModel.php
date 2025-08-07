@@ -13,8 +13,15 @@ class PendaftarRakernasModel extends Model
         'id_user',
         'bukti_tf',
         'keterangan',
+        'ukuran_baju',
         'status',
-        'qrcode'
+        'snap',
+        'order_id',
+        'biaya',
+        'qrcode',
+        'pengurus',
+        'no_urut',
+        'no_sertifikat'
     ];
     public $timestamps = true;
 
