@@ -8,25 +8,49 @@
         </a>
     </li>
 
-    @if (Auth::user()->email === 'absen@gmail.com')
-        {{-- Menu untuk admin dengan email absen@gmail.com --}}
-        <li>
-            <a href="{{ url('admin/rakernas') }}" class="tp-link">
-                <i data-feather="book-open"></i>
-                <span> Rakernas</span>
-            </a>
-        </li>
-    @elseif (Auth::user()->role === 'hukum')
-        {{-- Menu untuk role hukum --}}
-        <li>
-            <a href="{{ url('admin/aduan') }}" class="tp-link">
-                <i data-feather="briefcase"></i>
-                <span> Aduan</span>
-            </a>
-        </li>
-    @else
-        {{-- Menu untuk admin lainnya (bukan hukum dan bukan absen@gmail.com) --}}
-        <li>
+   @if (Auth::user()->email === 'absen@gmail.com')
+    {{-- Menu untuk admin dengan email absen@gmail.com --}}
+    <li>
+        <a href="{{ url('admin/rakernas') }}" class="tp-link">
+            <i data-feather="book-open"></i>
+            <span> Rakernas</span>
+        </a>
+    </li>
+@elseif (Auth::user()->email === 'eliyahacantha@unhas.ac.id')
+    {{-- Menu khusus untuk eliyahacantha@unhas.ac.id --}}
+    <li>
+        <a href="#sidebarDashboards" data-bs-toggle="collapse">
+            <i data-feather="users"></i>
+            <span> Pengguna </span>
+            <span class="menu-arrow"></span>
+        </a>
+        <div class="collapse" id="sidebarDashboards">
+            <ul class="nav-second-level">
+                <li>
+                    <a href="{{ url('admin/anggota') }}" class="tp-link">Anggota</a>
+                </li>
+                <li>
+                    <a href="{{ url('admin/tabulasi') }}" class="tp-link">Tabulasi Anggota</a>
+                </li>
+            </ul>
+        </div>
+    </li>
+    <li>
+        <a href="{{ url('admin/aduan') }}" class="tp-link">
+            <i data-feather="briefcase"></i>
+            <span> Aduan</span>
+        </a>
+    </li>
+@elseif (Auth::user()->role === 'hukum')
+    {{-- Menu untuk role hukum --}}
+    <li>
+        <a href="{{ url('admin/aduan') }}" class="tp-link">
+            <i data-feather="briefcase"></i>
+            <span> Aduan</span>
+        </a>
+    </li>
+@else
+     <li>
             <a href="#sidebarDashboards" data-bs-toggle="collapse">
                 <i data-feather="users"></i>
                 <span> Pengguna </span>
@@ -36,6 +60,9 @@
                 <ul class="nav-second-level">
                     <li>
                         <a href="{{ url('admin/calonanggota') }}" class="tp-link">Calon Anggota</a>
+                    </li>
+                    <li>
+                        <a href="{{ url('admin/expiredanggota') }}" class="tp-link">Expired Anggota</a>
                     </li>
                     <li>
                         <a href="{{ url('admin/anggota') }}" class="tp-link">Anggota</a>
@@ -80,7 +107,7 @@
                 </ul>
                 <ul class="nav-second-level">
                     <li>
-                        <a href="{{ url('admin/biaya-anggota') }}" class="tp-link">Biaya Anggota</a>
+                        <a href="{{ url('admin/biaya') }}" class="tp-link">Biaya Anggota</a>
                     </li>
                 </ul>
             </div>
@@ -103,5 +130,5 @@
                 <span> Aduan</span>
             </a>
         </li>
-    @endif
+@endif
 </ul>

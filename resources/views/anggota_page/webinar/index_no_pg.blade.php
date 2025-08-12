@@ -246,154 +246,154 @@ $url = '/anggota/webinar';
                                             </td>
 
                                             <td>
-                                                @php
-                                                    $today = \Carbon\Carbon::today();
-                                                    $tanggalMulai = \Carbon\Carbon::parse($data->tanggal_mulai);
-                                                    $tanggalSelesai = \Carbon\Carbon::parse($data->tanggal_selesai);
-                                                @endphp
-                                                @if ($data->tanggal_mulai <= $today)
+                                               @if($data->hari!='0' && $data->pukul!='0')
+                                           
+                                               
+                                                @if (in_array($data->id_wb, $webinar_terdaftar))
                                                     <span
-                                                        class="badge bg-secondary-subtle text-secondary fw-semibold text-uppercase">
-                                                        Tutup Pendaftaran
+                                                        class="badge bg-primary-subtle text-primary fw-semibold text-uppercase">
+                                                        Terdaftar
                                                     </span>
                                                 @else
-                                                    @if ($data->hari != '0' && $data->pukul != '0')
-                                                        @php
-                                                            // Ambil pendaftar sesuai webinar yang sedang di-loop
-                                                            $pendaftar = $pendaftar_webinar->firstWhere(
-                                                                'id_wb',
-                                                                $data->id_wb,
-                                                            );
-                                                        @endphp
-                                                        @if ($pendaftar)
-                                                            <span
-                                                                class="badge bg-primary-subtle text-primary fw-semibold text-uppercase">
-                                                                Terdaftar
-                                                            </span>
+                                                    <span
+                                                        class="badge bg-warning-subtle text-warning fw-semibold text-uppercase">
+                                                        Belum Terdaftar
+                                                    </span>
 
-                                                            @if ($pendaftar->token === null)
-                                                                <a href="{{ url('anggota/webinar/pembayaran/' . $pendaftar->snap ) }}"
-                                                                    target="_blank"
-                                                                    class="badge bg-warning-subtle text-warning fw-semibold text-uppercase border border-warning"
-                                                                    style="cursor:pointer; text-decoration:none;"
-                                                                    aria-label="anchor">
-                                                                    Klik Untuk Bayar!
-                                                                </a>
-                                                            @else
-                                                                 <i class="mdi mdi-check-decagram-outline fs-14 text-primary"></i>
-
-                                                            @endif
-                                                        @else
-                                                            <span
-                                                                class="badge bg-warning-subtle text-warning fw-semibold text-uppercase">
-                                                                Belum Terdaftar
-                                                            </span>
-
-                                                            @if ($data->status === 'publish')
-                                                                <button type="button" aria-label="anchor"
-                                                                    class="badge bg-success-subtle text-success fw-semibold text-uppercase border border-success"
-                                                                    style="cursor:pointer" data-bs-toggle="modal"
-                                                                    data-bs-target="#modalValidasi{{ $data->id_wb }}"
-                                                                    data-bs-original-title="Daftar Webinar">
-                                                                    Klik Untuk Daftar!
-                                                                </button>
-                                                            @endif
-                                                            <!-- Modal Validasi -->
-                                                            <div class="modal fade" id="modalValidasi{{ $data->id_wb }}"
-                                                                tabindex="-1"
-                                                                aria-labelledby="modalValidasiLabel{{ $data->id_wb }}"
-                                                                aria-hidden="true">
-                                                                <div class="modal-dialog">
-                                                                    @if ($data->bayar_free === 'bayar')
-                                                                        <form action="{{ route('storeWebinar') }}"
-                                                                            method="POST" enctype="multipart/form-data">
-                                                                            @csrf
-                                                                            <div class="modal-content">
-                                                                                <div class="modal-header">
-                                                                                    <h5 class="modal-title"
-                                                                                        id="modalValidasiLabel{{ $data->id_wb }}">
-                                                                                        Daftar Webinar
-                                                                                    </h5>
-                                                                                    <button type="button"
-                                                                                        class="btn-close"
-                                                                                        data-bs-dismiss="modal"
-                                                                                        aria-label="Close"></button>
-                                                                                </div>
-                                                                                <div class="modal-body">
-                                                                                    <label for="keterangan"
-                                                                                        class="form-label mb-1">Yakin ingin
-                                                                                        mendaftar Webinar ini?</label>
-                                                                                    <input type="hidden" name="id_wb"
-                                                                                        value="{{ $data->id_wb }}">
-                                                                                    <input type="hidden" name="biaya"
-                                                                                        value="{{ $data->biaya_unik }}">
-                                                                                    <input type="hidden" name="id_user"
-                                                                                        value="{{ Auth::id() }}">
-                                                                                </div>
-                                                                                <div class="modal-footer">
-                                                                                    <button type="button"
-                                                                                        class="btn btn-dark btn-sm"
-                                                                                        data-bs-dismiss="modal">Batal</button>
-                                                                                    <button type="submit"
-                                                                                        class="btn btn-primary btn-sm">Daftar</button>
-                                                                                </div>
-                                                                            </div>
-                                                                        </form>
-                                                                    @else
-                                                                        <form action="{{ route('daftarWebinarFree') }}"
-                                                                            method="POST" enctype="multipart/form-data">
-                                                                            @csrf
-                                                                            <div class="modal-content">
-                                                                                <div class="modal-header">
-                                                                                    <h5 class="modal-title"
-                                                                                        id="modalValidasiLabel{{ $data->id_wb }}">
-                                                                                        Daftar Webinar
-                                                                                    </h5>
-                                                                                    <button type="button"
-                                                                                        class="btn-close"
-                                                                                        data-bs-dismiss="modal"
-                                                                                        aria-label="Close"></button>
-                                                                                </div>
-                                                                                <div class="modal-body">
-                                                                                    <label for="keterangan"
-                                                                                        class="form-label mb-1">Yakin ingin
-                                                                                        mendaftar Webinar ini?</label>
-                                                                                    <input type="hidden" name="id_wb"
-                                                                                        value="{{ $data->id_wb }}">
-                                                                                    <input type="hidden" name="biaya"
-                                                                                        value="{{ $data->biaya_unik }}">
-                                                                                    <input type="hidden" name="id_user"
-                                                                                        value="{{ Auth::id() }}">
-                                                                                </div>
-                                                                                <div class="modal-footer">
-                                                                                    <button type="button"
-                                                                                        class="btn btn-dark btn-sm"
-                                                                                        data-bs-dismiss="modal">Batal</button>
-                                                                                    <button type="submit"
-                                                                                        class="btn btn-primary btn-sm">Daftar</button>
-                                                                                </div>
-                                                                            </div>
-                                                                        </form>
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endif
-                                                    @else
-                                                        <span
-                                                            class="badge bg-primary-subtle text-primary fw-semibold text-uppercase">
-                                                            Tanpa Pendaftaran
-                                                        </span>
+                                                    @if ($data->status === 'publish')
+                                                        <button type="button" aria-label="anchor"
+                                                            class="btn btn-icon btn-sm bg-warning-subtle me-1"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#modalValidasi{{ $data->id_wb }}"
+                                                            data-bs-original-title="Daftar Webinar">
+                                                            <i
+                                                                class="mdi mdi-check-decagram-outline fs-14 text-warning"></i>
+                                                        </button>
                                                     @endif
+                                                    <!-- Modal Validasi -->
+                                                    <div class="modal fade" id="modalValidasi{{ $data->id_wb }}"
+                                                        tabindex="-1"
+                                                        aria-labelledby="modalValidasiLabel{{ $data->id_wb }}"
+                                                        aria-hidden="true">
+                                                        <div class="modal-dialog">
+                                                            <form action="{{ route('store_registrasi_anggota') }}"
+                                                                method="POST" enctype="multipart/form-data">
+                                                                @csrf
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <h5 class="modal-title"
+                                                                            id="modalValidasiLabel{{ $data->id_wb }}">
+                                                                            Daftar Webinar
+                                                                        </h5>
+                                                                        <button type="button" class="btn-close"
+                                                                            data-bs-dismiss="modal"
+                                                                            aria-label="Close"></button>
+                                                                    </div>
+                                                                    <div class="modal-body">
+                                                                        @if ($data->bayar_free === 'bayar')
+                                                                            {{-- Keterangan Rekening Pengirim --}}
+                                                                            <div class="mb-3">
+                                                                                <label for="keterangan"
+                                                                                    class="form-label mb-1">Informasi
+                                                                                    Rekening Pengirim</label>
+                                                                                <input type="text"
+                                                                                    class="form-control @error('keterangan') is-invalid @enderror"
+                                                                                    id="keterangan" name="keterangan"
+                                                                                    placeholder="Misal: Budi Karya - BRI 03178261829256"
+                                                                                    value="{{ old('keterangan') }}">
+                                                                                @error('keterangan')
+                                                                                    <div class="invalid-feedback">
+                                                                                        {{ $message }}
+                                                                                    </div>
+                                                                                @enderror
+                                                                            </div>
+                                                                            {{-- Bukti Transfer --}}
+                                                                            <div class="mb-3">
+                                                                                <label for="bukti_transfer"
+                                                                                    class="form-label mb-1">Bukti
+                                                                                    Transfer</label>
+                                                                                <input type="file"
+                                                                                    class="form-control @error('bukti_transfer') is-invalid @enderror"
+                                                                                    id="bukti_transfer"
+                                                                                    name="bukti_transfer">
+
+
+                                                                                <br>
+                                                                                <small class="form-text text-danger">
+                                                                                    *Transfer senilai <strong
+                                                                                        class="text-success">Rp.
+                                                                                        {{ number_format($data->biaya_unik ?? 0, 0, ',', '.') }}
+                                                                                    </strong> (pastikan persis hingga 3
+                                                                                    digit terakhir)
+                                                                                </small><br>
+                                                                                <small class="form-text text-danger">
+                                                                                    *Transfer ke <strong
+                                                                                        class="text-success">{{ $data->rekening->no_rek ?? '-' }}</strong>
+                                                                                    , Rek. <strong
+                                                                                        class="text-success">{{ $data->rekening->nama_bank ?? '-' }}</strong>,
+                                                                                    a.n <strong
+                                                                                        class="text-success">{{ $data->rekening->atas_nama ?? '-' }}</strong>
+                                                                                    (Wakil Bendahara
+                                                                                    DPP ADAKSI)
+                                                                                </small>
+
+                                                                                @error('bukti_transfer')
+                                                                                    <div class="invalid-feedback">
+                                                                                        {{ $message }}
+                                                                                    </div>
+                                                                                @enderror
+                                                                            </div>
+                                                                        @else
+                                                                            <label for="keterangan"
+                                                                                class="form-label mb-1">Yakin ingin
+                                                                                mendaftar Webinar ini?</label>
+                                                                        @endif
+                                                                        <input type="hidden" name="id_wb"
+                                                                            value="{{ $data->id_wb }}">
+                                                                        <input type="hidden" name="biaya"
+                                                                            value="{{ $data->biaya_unik }}">
+                                                                        <input type="hidden" name="id_user"
+                                                                            value="{{ Auth::id() }}">
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-dark btn-sm"
+                                                                            data-bs-dismiss="modal">Batal</button>
+                                                                        <button type="submit"
+                                                                            class="btn btn-primary btn-sm">Daftar</button>
+                                                                    </div>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
                                                 @endif
+                                                @else
+                                                      <span
+                                                        class="badge bg-primary-subtle text-primary fw-semibold text-uppercase">
+                                                        Tanpa Pendaftaran
+                                                    </span>  
+                                               @endif
                                             </td>
                                             <td>
-                                                @if ($today->lt($tanggalMulai))
-                                                    <span class="badge bg-info">PENDAFTARAN</span>
-                                                @elseif($today->gt($tanggalSelesai))
-                                                    <span class="badge bg-secondary">SELESAI</span>
-                                                @else
-                                                    <span class="badge bg-success">SEDANG BERLANGSUNG</span>
+                                                @if($data->hari!='0' && $data->pukul!='0')
+                                                @if ($data->status == 'publish')
+                                                    <span
+                                                        class="badge bg-primary-subtle text-primary fw-semibold text-uppercase">
+                                                        Pendaftaran
+                                                    </span>
+                                                @elseif ($data->status == 'draft')
+
+                                                @elseif ($data->status == 'selesai')
+                                                    <span
+                                                        class="badge bg-success-subtle text-success fw-semibold text-uppercase">
+                                                        {{ $data->status }}
+                                                    </span>
                                                 @endif
+                                                @else
+                                                      <span
+                                                        class="badge bg-primary-subtle text-primary fw-semibold text-uppercase">
+                                                        Tanpa Pendaftaran
+                                                    </span>  
+                                               @endif
                                             </td>
                                         </tr>
                                     @endforeach

@@ -435,7 +435,25 @@ class RakernasController extends Controller
             ->pluck('total', 'pengurus');
 
 
-        return view('admin_page.rakernas.absensi', compact('absensi_rakernas', 'rakernas','totalAbsensiByPengurus'));
+        $totalPendaftarRakernas = \App\Models\PendaftarRakernasModel::where('id_rk', $id)->count();
+
+        // Total yang absen (unik per pendaftar, jika 1 pendaftar bisa absen lebih dari 1x, gunakan distinct)
+        $totalAbsen = \App\Models\AbsensiRakernasModel::whereHas('AbsenPendaftar', function ($q) use ($id) {
+            $q->where('id_rk', $id);
+        })->distinct('id_prk')->count('id_prk');
+
+        // Total yang tidak absen
+        $totalTidakAbsen = $totalPendaftarRakernas - $totalAbsen;
+
+        // Kirim ke view
+        return view('admin_page.rakernas.absensi', compact(
+            'absensi_rakernas',
+            'rakernas',
+            'totalAbsensiByPengurus',
+            'totalPendaftarRakernas',
+            'totalAbsen',
+            'totalTidakAbsen'
+        ));
     }
 
 

@@ -11,29 +11,40 @@ use Illuminate\Support\Facades\Auth;
 
 Route::prefix('anggota')
     ->middleware(['auth'])
-    ->controller(AnggotaController::class)
     ->group(function () {
-        Route::get('dashboard', [AnggotaController::class, 'dashboard'])->name('anggota.dashboard');
-        Route::get('profile', [AnggotaController::class, 'profile'])->name('anggota.profile');
-        Route::get('webinar', [AnggotaController::class, 'webinar'])->name('anggota.webinar');
-        Route::get('rakernas', 'showAllRakernas')->name('anggota.rakernas.index');
-        Route::get('aduan', [AduanController::class, 'showAllAduan'])->name('aduan.index');
-        Route::get('create', [AduanController::class, 'create'])->name('aduan.create');
-        Route::get('edit/{id}', [AduanController::class, 'edit'])->name('aduan.edit');
-        Route::put('{id}', [AduanController::class, 'update'])->name('aduan.update');
-        Route::post('aduan/hapus/{id}', [AduanController::class, 'hapus'])->name('aduan.hapus');
-        Route::get('edit/{id}', [AduanController::class, 'edit'])->name('aduan.edit');
-        Route::post('store', [AduanController::class, 'store'])->name('aduan.store');
-        Route::post('store_tanggapan', [AduanController::class, 'store_tanggapan'])->name('aduan.store_tanggapan');
-        Route::post('webinar/store_registrasi_anggota', [AnggotaController::class, 'store_registrasi_anggota'])->name('store_registrasi_anggota');
-        Route::post('rakernas/store_registrasi_rakernas', [AnggotaController::class, 'store_registrasi_rakernas'])->name('store_registrasi_rakernas');
-        Route::get('profile/edit', [AnggotaController::class, 'editProfile'])->name('anggota.profile.edit');
-        Route::post('profile/edit', [AnggotaController::class, 'updateProfile'])->name('anggota.profile.update');
-        Route::get('download-kta', [AnggotaController::class, 'downloadKTA'])->name('anggota.download_kta');
+        // AnggotaController
+        Route::controller(AnggotaController::class)->group(function () {
+            Route::get('dashboard', 'dashboard')->name('anggota.dashboard');
+            Route::get('profile', 'profile')->name('anggota.profile');
+            Route::get('webinar', 'webinar')->name('anggota.webinar');
+            Route::get('rakernas', 'showAllRakernas')->name('anggota.rakernas.index');
+            Route::post('webinar/store_registrasi_anggota', 'store_registrasi_anggota')->name('store_registrasi_anggota');
+            Route::post('daftar-webinar', 'daftarWebinar')->name('daftarWebinar');
+            //Route::post('daftar-webinar', 'storeWebinar')->name('anggota.storeWebinar');
+            Route::post('daftar-webinar-free', 'daftarWebinarFree')->name('daftarWebinarFree');
+            Route::post('rakernas/store_registrasi_rakernas', 'store_registrasi_rakernas')->name('store_registrasi_rakernas');
+            Route::get('profile/edit', 'editProfile')->name('anggota.profile.edit');
+            Route::post('profile/edit', 'updateProfile')->name('anggota.profile.update');
+            Route::get('download-kta', 'downloadKTA')->name('anggota.download_kta');
+            Route::get('profile/edit_password', 'editPassword')->name('anggota.profile.edit_password');
+            Route::post('profile/edit_password', 'updatePassword')->name('anggota.profile.update_password');
+        });
+
+        // AduanController
+        Route::controller(AduanController::class)->group(function () {
+            Route::get('aduan', 'showAllAduan')->name('aduan.index');
+            Route::get('aduan/create', 'create')->name('aduan.create');
+            Route::get('aduan/edit/{id}', 'edit')->name('aduan.edit');
+            Route::put('aduan/{id}', 'update')->name('aduan.update');
+            Route::post('aduan/hapus/{id}', 'hapus')->name('aduan.hapus');
+            Route::post('aduan/store', 'store')->name('aduan.store');
+            Route::post('aduan/store_tanggapan', 'store_tanggapan')->name('aduan.store_tanggapan');
+        });
+
+        // Webinar & Rakernas
+        Route::post('storeWebinar', [WebinarController::class, 'storeWebinar'])->name('storeWebinar');
         Route::get('sertifikat/{id_wb}/{id?}', [WebinarController::class, 'sertifikat'])->name('anggota.sertifikat');
         Route::get('sertifikat_rakernas/{id_prk}/{id?}', [RakernasController::class, 'sertifikat_rakernas'])->name('anggota.sertifikat_rakernas');
-        Route::get('profile/edit_password', [AnggotaController::class, 'editPassword'])->name('anggota.profile.edit_password');
-        Route::post('profile/edit_password', [AnggotaController::class, 'updatePassword'])->name('anggota.profile.update_password');
         //Route::get('/validasi-pembayaran-rakernas/{id_prk}', [RakernasController::class, 'validasiPendaftar'])->name('anggota.validasiPendaftar');
     });
 
@@ -79,3 +90,18 @@ Route::get('download-kta-1', [AnggotaController::class, 'downloadKTA_1'])
 
 Route::match(['get', 'post'], '/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::get('/anggota/webinar/pembayaran/{snapToken}', function ($snapToken) {
+    $anggota = \App\Models\PendaftarExtModel::where('snap', $snapToken)->first();
+
+    return view('anggota_page.webinar.pembayaran', [
+        'snapToken' => $snapToken,
+        'biaya' => $anggota?->biaya ?? 0,
+        'nama' => $anggota?->nama ?? 'Bapak/Ibu Dosen',
+        'id_pwe' => $anggota?->id_pwe ?? null,
+        'token' => $anggota?->token ?? null,
+        'no_urut' => $anggota?->no_urut ?? null,
+    ]);
+})->name('anggota.webinar.pembayaran');
+
+Route::get('/validasi-pembayaran-webinar/{snapToken}', [WebinarController::class, 'validasiBySnap'])->name('anggota.webinar.validasi');

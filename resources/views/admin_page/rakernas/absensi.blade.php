@@ -39,15 +39,15 @@ $url = '/admin/rakernas';
                         <div class="d-md-flex align-items-center">
                             <div>
                                 <div>
-                                    <h5>Total Absensi Berdasarkan Jenis Pengurus</h5>
                                     <ul>
+                                        <li>Total Pendaftar Rakernas: {{ $totalPendaftarRakernas ?? 0 }}</li>
+                                        <li>Total yang Absen: {{ $totalAbsen ?? 0 }}</li>
+                                        <li>Total yang Tidak Absen: {{ $totalTidakAbsen ?? 0 }}</li>
                                         <li>DPP: {{ $totalAbsensiByPengurus['DPP'] ?? 0 }}</li>
                                         <li>DPW: {{ $totalAbsensiByPengurus['DPW'] ?? 0 }}</li>
                                         <li>DPC: {{ $totalAbsensiByPengurus['DPC'] ?? 0 }}</li>
                                         <li>Anggota Biasa: {{ $totalAbsensiByPengurus['Anggota Biasa'] ?? 0 }}</li>
                                     </ul>
-
-
                                 </div>
                             </div>
                             <form class="d-flex flex-stack flex-wrap gap-1 justify-content-md-end ms-auto">

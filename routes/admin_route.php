@@ -8,6 +8,7 @@ use App\Http\Controllers\WebinarController;
 use App\Http\Controllers\RakernasController;
 use App\Http\Controllers\RekeningController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BiayaController;
 
 Route::prefix('admin')
     ->middleware(['access:admin|superadmin|hukum'])
@@ -85,6 +86,16 @@ Route::prefix('admin')
                 Route::put('{id}', 'update')->name('rekening.update');
             });
 
+        // Biaya Manajement
+        Route::prefix('biaya')
+            ->controller(BiayaController::class)
+            ->group(function () {
+                Route::get('/', 'showAllBiaya');
+                Route::post('/', 'store')->name('biaya.store');
+                //Route::put('{id}', 'update')->name('biaya.update');
+                Route::post('update/{id}', 'update');
+            });
+
         // Rakernas Manajement
         Route::prefix('rakernas')
             ->controller(RakernasController::class)
@@ -117,7 +128,7 @@ Route::prefix('admin')
                 Route::post('store_tanggapan_admin', 'store_tanggapan_admin')->name('aduan.store_tanggapan_admin');
                 Route::post('selesai/{id}', 'selesai')->name('selesai')->where('id', '[0-9]+');
             });
-            
+
         Route::post('store_tanggapan', [AduanController::class, 'store_tanggapan'])->name('aduan.store_tanggapan');
 
         Route::prefix('calonanggota')
@@ -125,6 +136,14 @@ Route::prefix('admin')
             ->group(function () {
                 Route::get('/', 'showAllCalonAnggota')->name('calonanggota.index');
                 Route::post('validasi/{id}', 'validasi')->where('id', '[0-9]+'); // ✅ Tambahan ini penting
+            });
+
+        Route::prefix('expiredanggota')
+            ->controller(AnggotaController::class)
+            ->group(function () {
+                Route::get('/', 'showAllExpiredAnggota')->name('expiredanggota.index');
+                Route::post('validasiExpired/{id}', 'validasiExpired')->where('id', '[0-9]+'); // ✅ Tambahan ini penting
+                Route::get('/admin/expiredanggota', 'showAllExpiredAnggota')->name('expiredanggota.index');
             });
 
         Route::prefix('importanggota')

@@ -107,7 +107,8 @@
                             </p>
                         </div>
 
-                        <form action="{{ url('anggota/daftar') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ url('anggota/daftar') }}" method="POST" enctype="multipart/form-data"> 
+                      {{--    <form action="{{ url('anggota/daftar-anggota-tetap') }}" method="POST" enctype="multipart/form-data"> --}}
                             @csrf
 
                             {{-- Nama Lengkap --}}

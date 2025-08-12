@@ -110,6 +110,7 @@ $url = '/admin/rakernas';
                                         <th>Provinsi</th>
                                         <th>Perwakilan</th>
                                         <th>Validasi</th>
+                                        <th>Daftar</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -137,6 +138,9 @@ $url = '/admin/rakernas';
                                             <td>
                                                 <p class="mb-0 fw-medium fs-14">{{ $data->anggota->provinsi ?? '-' }}</p>
                                             </td>
+                                            </td>
+                                            <td>
+                                                <p class="mb-0 fw-medium fs-14">{{ $data->pengurus ?? '-' }}</p>
                                             </td>
                                             <td>
                                                 <p class="mb-0 fw-medium fs-14">{{ $data->pengurus ?? '-' }}</p>
@@ -292,7 +296,6 @@ $url = '/admin/rakernas';
 
 
                                             </td>
-
                                         </tr>
                                     @endforeach
                                 </tbody>

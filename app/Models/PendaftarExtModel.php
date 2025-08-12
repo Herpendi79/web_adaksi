@@ -21,6 +21,8 @@ class PendaftarExtModel extends Model
         'keterangan',
         'bukti_tf',
         'token',
+        'snap',
+        'order_id',
         'no_urut',
         'no_sertifikat'
     ];

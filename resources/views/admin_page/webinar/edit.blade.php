@@ -103,8 +103,24 @@
 
                             <label for="tanggal_selesai" class="form-label m-0">Tanggal Selesai</label>
                             <input type="date" class="form-control @error('tanggal_selesai') is-invalid @enderror"
-                                id="tanggal_selesai" name="tanggal_selesai" min="{{ $today }}"
+                                id="tanggal_selesai" name="tanggal_selesai"
+                                min="{{ old('tanggal_mulai', $webinar->tanggal_mulai ?? $today) }}"
                                 value="{{ old('tanggal_selesai', $webinar->tanggal_selesai ?? '') }}">
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const mulai = document.getElementById('tanggal_mulai');
+                                    const selesai = document.getElementById('tanggal_selesai');
+
+                                    function setSelesaiMin() {
+                                        selesai.min = mulai.value;
+                                        if (selesai.value < mulai.value) {
+                                            selesai.value = mulai.value;
+                                        }
+                                    }
+                                    mulai.addEventListener('change', setSelesaiMin);
+                                    setSelesaiMin();
+                                });
+                            </script>
                             @error('tanggal_selesai')
                                 <div class="invalid-feedback">
                                     {{ $message }}
@@ -337,7 +353,7 @@
                                     </div>
                                 @enderror
                             </div>
-                             <script>
+                            <script>
                                 function toggleRekeningDropdown() {
                                     const isFree = document.getElementById('free').checked;
                                     const rekeningSelect = document.getElementById('id_rek');
@@ -377,14 +393,18 @@
                                 <select class="form-select @error('angkatan') is-invalid @enderror" id="angkatan"
                                     name="angkatan">
                                     <option value="" disabled
-                                        {{ old('angkatan', $sertifikat->angkatan) ? '' : 'selected' }}>-- Pilih Angkatan --
+                                        {{ old('angkatan', isset($sertifikat) && $sertifikat ? $sertifikat->angkatan : null) ? '' : 'selected' }}>
+                                        -- Pilih Angkatan --
                                     </option>
                                     <option value="I"
-                                        {{ old('angkatan', $sertifikat->angkatan) == 'I' ? 'selected' : '' }}>I</option>
+                                        {{ old('angkatan', isset($sertifikat) && $sertifikat ? $sertifikat->angkatan : null) == 'I' ? 'selected' : '' }}>
+                                        I</option>
                                     <option value="II"
-                                        {{ old('angkatan', $sertifikat->angkatan) == 'II' ? 'selected' : '' }}>II</option>
+                                        {{ old('angkatan', isset($sertifikat) && $sertifikat ? $sertifikat->angkatan : null) == 'II' ? 'selected' : '' }}>
+                                        II</option>
                                     <option value="III"
-                                        {{ old('angkatan', $sertifikat->angkatan) == 'III' ? 'selected' : '' }}>III
+                                        {{ old('angkatan', isset($sertifikat) && $sertifikat ? $sertifikat->angkatan : null) == 'III' ? 'selected' : '' }}>
+                                        III
                                     </option>
                                 </select>
                                 @error('angkatan')
@@ -399,15 +419,19 @@
                                 <select class="form-select @error('unit') is-invalid @enderror" id="unit"
                                     name="unit">
                                     <option value="" disabled
-                                        {{ old('unit', $sertifikat->unit) ? '' : 'selected' }}>-- Pilih Unit -- </option>
+                                        {{ old('unit', isset($sertifikat) && $sertifikat ? $sertifikat->unit : null) ? '' : 'selected' }}>
+                                        -- Pilih Unit -- </option>
                                     <option value="DPP"
-                                        {{ old('angkatan', $sertifikat->angkatan) == 'DPP' ? 'selected' : '' }}>DPP
+                                        {{ old('unit', isset($sertifikat) && $sertifikat ? $sertifikat->unit : null) == 'DPP' ? 'selected' : '' }}>
+                                        DPP
                                     </option>
                                     <option value="DPW"
-                                        {{ old('angkatan', $sertifikat->angkatan) == 'DPW' ? 'selected' : '' }}>DPW
+                                        {{ old('unit', isset($sertifikat) && $sertifikat ? $sertifikat->unit : null) == 'DPW' ? 'selected' : '' }}>
+                                        DPW
                                     </option>
                                     <option value="DPC"
-                                        {{ old('angkatan', $sertifikat->angkatan) == 'DPC' ? 'selected' : '' }}>DPC
+                                        {{ old('unit', isset($sertifikat) && $sertifikat ? $sertifikat->unit : null) == 'DPC' ? 'selected' : '' }}>
+                                        DPC
                                     </option>
                                 </select>
                                 @error('unit')
@@ -469,7 +493,7 @@
 
                     {{-- SCRIPT --}}
                     <script>
-                        let fasilitasIndex = 1;
+                        let fasilitasIndex = {{ count($webinar->fasilitas) }};
 
                         document.getElementById('add-fasilitas').addEventListener('click', function() {
                             const container = document.getElementById('fasilitas-container');

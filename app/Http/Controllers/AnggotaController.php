@@ -6,8 +6,9 @@ namespace App\Http\Controllers;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Mail\AnggotaValidateMail;
 use App\Models\AnggotaModel;
+use App\Models\AnggotaExpiredModel;
 use App\Models\WebinarModel;
-use App\Models\RekeningModel;
+use App\Models\OrderIDModel;
 use App\Models\AduanModel;
 use App\Models\PendaftarRakernasModel;
 use App\Models\RakernasModel;
@@ -25,8 +26,10 @@ use App\Models\RekapPerProvinsiExport;
 use App\Models\RekapGabunganExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\File;
+// Log sudah diimport di atas, tidak perlu diimport ulang
 use Illuminate\Support\Str;
 use App\Models\SertifikatModel;
+use App\Models\UserExpired;
 use Illuminate\Support\Facades\Log;
 use Midtrans\Config;
 use Illuminate\Support\Facades\Http;
@@ -59,7 +62,236 @@ class AnggotaController extends Controller
         return view('anggota_page.main.dashboard', compact('anggota', 'sisaHari'));
     }
 
+    public function store_anggota_tetap(Request $request)
+    {
+        $messages = [
+            'nama_anggota.required' => 'Nama anggota wajib diisi.',
+            'nama_anggota.string' => 'Nama anggota harus berupa teks.',
+            'nama_anggota.max' => 'Nama anggota maksimal 255 karakter.',
 
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.max' => 'Email maksimal 255 karakter.',
+
+            'nip_nipppk.required' => 'NIP/NIPPPK wajib diisi.',
+            'nip_nipppk.string' => 'NIP/NIPPPK harus berupa teks.',
+            'nip_nipppk.max' => 'NIP/NIPPPK maksimal 50 karakter.',
+            'nip_nipppk.unique' => 'NIP/NIPPPK sudah terdaftar.',
+
+            'no_hp.required' => 'Nomor HP wajib diisi.',
+            'no_hp.string' => 'Nomor HP harus berupa teks.',
+            'no_hp.max' => 'Nomor HP maksimal 20 karakter.',
+            'no_hp.unique' => 'Nomor HP sudah terdaftar.',
+
+            'status_dosen.required' => 'Status dosen wajib diisi.',
+            'status_dosen.string' => 'Status dosen harus berupa teks.',
+
+            'homebase_pt.required' => 'Homebase PT wajib diisi.',
+            'homebase_pt.string' => 'Homebase PT harus berupa teks.',
+            'homebase_pt.max' => 'Homebase PT maksimal 100 karakter.',
+
+            'provinsi.required' => 'Provinsi wajib diisi.',
+            'provinsi.string' => 'Provinsi harus berupa teks.',
+            'provinsi.max' => 'Provinsi maksimal 100 karakter.',
+
+        ];
+
+        // validasi NIP
+
+        $nip_nipppk = $request->nip_nipppk;
+        $existingAnggota = AnggotaModel::where('nip_nipppk', $nip_nipppk)->where('status_anggota', '!=', 'nonaktif')->first();
+        if ($existingAnggota) {
+            notify()->error('NIP/NIPPPK sudah terdaftar. Silakan gunakan NIP/NIPPPK yang berbeda.');
+            return redirect()->back()->withInput();
+        }
+
+        // validasi No HP
+
+        $no_hp = $request->no_hp;
+        $existingno_hp = User::where('no_hp', $no_hp)->first();
+        if ($existingno_hp) {
+            notify()->error('No HP/WA sudah terdaftar. Silakan gunakan HP/WA yang berbeda.');
+            return redirect()->back()->withInput();
+        }
+
+        // validasi EMail
+        $email = $request->email;
+        $existingEmail = User::where('email', $email)->first();
+        if ($existingEmail) {
+            notify()->error('Email sudah terdaftar. Silakan gunakan Email yang berbeda.');
+            return redirect()->back()->withInput();
+        }
+
+        $request->validate([
+            'nama_anggota' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'nip_nipppk' => 'required|string|max:50',
+            'no_hp' => 'required|string|max:20',
+            'status_dosen' => 'required|string',
+            'homebase_pt' => 'required|string|max:100',
+            'provinsi' => 'required|string|max:100',
+            'status_anggota' => 'nullable|in:pending,aktif,nonaktif',
+        ], $messages);
+        // die;
+
+        try {
+
+            // Ambil semua order_id yang sudah dipakai di AnggotaModel
+            $usedOrderIds = AnggotaModel::pluck('order_id')->toArray();
+            // Ambil order_id terbesar yang belum dipakai
+            $tb_order = OrderIDModel::whereNotIn('order_id', $usedOrderIds)
+                ->orderBy('order_id', 'desc')
+                ->first();
+            if ($tb_order) {
+                $order_id = $tb_order->order_id;
+                //$id = $tb_order->id;
+            } else {
+                // Jika tidak ada, buat order_id otomatis
+                $today = now()->format('Ymd');
+                $randomNumber = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                $order_id = "INV-{$today}-{$randomNumber}";
+                //$id = null;
+            }
+
+
+            $kode_unik = rand(500, 999);
+            // Ambil biaya dari tabel biaya dengan keterangan 'Pendaftaran' dan tanggal berlaku
+            $today = now()->format('Y-m-d');
+            $biayaPendaftaran = \App\Models\BiayaModel::where('keterangan', 'Pendaftaran')
+                ->where(function ($q) use ($today) {
+                    $q->where(function ($q2) use ($today) {
+                        $q2->whereNull('berlaku_mulai')->orWhere('berlaku_mulai', '<=', $today);
+                    });
+                    $q->where(function ($q2) use ($today) {
+                        $q2->whereNull('berlaku_sampai')->orWhere('berlaku_sampai', '>=', $today);
+                    });
+                })
+                ->orderByDesc('berlaku_mulai')
+                ->first();
+            if ($biayaPendaftaran) {
+                $biaya = (int)$biayaPendaftaran->nominal + $kode_unik;
+            } else {
+                $biaya = 105000 + $kode_unik; // fallback default
+            }
+
+            $user = User::create([
+                'email' => $request->email,
+                'password' => bcrypt($this->defaultPassword),
+                'password_temporary' => $this->defaultPassword,
+                'role' => 'anggota',
+                'no_hp' => $request->no_hp,
+            ]);
+            $anggota = AnggotaModel::create([
+                'id_user' => $user->id_user,
+                'nama_anggota' => $request->nama_anggota,
+                'nip_nipppk' => $request->nip_nipppk,
+                'status_dosen' => $request->status_dosen,
+                'homebase_pt' => $request->homebase_pt,
+                'provinsi' => $request->provinsi,
+                'biaya' => $biaya,
+                'status_anggota' => 'pending',
+                'order_id' => $order_id,
+            ]);
+
+            $durationInMinutes = 30;
+
+            // Set your Merchant Server Key
+            \Midtrans\Config::$serverKey = config('midtrans.serverKey');
+            // Set to Development/Sandbox Environment (default). Set to true for Production Environment (accept real transaction).
+            \Midtrans\Config::$isProduction = config('midtrans.isProduction');
+            // Set sanitization on (default)
+            \Midtrans\Config::$isSanitized = config('midtrans.isSanitized');
+            // Set 3DS transaction for credit card to true
+            \Midtrans\Config::$is3ds = config('midtrans.is3ds');
+
+            $params = array(
+                'transaction_details' => array(
+                    'order_id' => $order_id,
+                    'gross_amount' => $biaya,
+                ),
+                'customer_details' => array(
+                    'first_name' => $request->nama_anggota,
+                    'email' => $request->email,
+                ),
+                'expiry' => array(
+                    'start_time' => date("Y-m-d H:i:s O"), // waktu sekarang + zona waktu server
+                    'unit' => 'minute', // minute / hour / day
+                    'duration' => $durationInMinutes,
+                )
+            );
+
+            $snapToken = \Midtrans\Snap::getSnapToken($params);
+
+            $anggota->snap = $snapToken;
+            $anggota->save();
+
+            OrderIDModel::where('id', $id)->delete();
+
+            $today = now()->format('Ymd');
+            $randomNumber = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+            $new_order_id = "INV-{$today}-{$randomNumber}";
+
+            $oder_id_create = OrderIDModel::create([
+                'order_id' => $new_order_id
+            ]);
+
+            $urlPembayaran = url('/anggota/pembayaran/' . $snapToken);
+
+            $message = "Halo *{$request->nama_anggota}* 👋,
+
+Terima kasih telah mendaftar keanggotaan ADAKSI.
+
+Silakan lakukan pembayaran melalui tautan berikut:
+{$urlPembayaran}
+
+Total tagihan Anda: *Rp " . number_format($biaya, 0, ',', '.') . "*
+
+Mari bersama berjuang untuk Indonesia Emas! 🇮🇩✨
+
+_Salam,_  
+*Tim ADAKSI*";
+
+
+            $message = mb_convert_encoding($message, 'UTF-8', 'auto'); // Pastikan UTF-8
+
+            $data = [
+                'target' => $request->no_hp, // Format: 628xxxx
+                'message' => $message
+            ];
+
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => 'https://api.fonnte.com/send',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => json_encode($data, JSON_UNESCAPED_UNICODE), // penting agar emoji tidak berubah
+                CURLOPT_HTTPHEADER => array(
+                    'Authorization: 5ef8QqtZQtmcBLfiWth5',
+                    'Content-Type: application/json; charset=utf-8'
+                ),
+            ));
+
+            $response = curl_exec($curl);
+
+            if (curl_errno($curl)) {
+                $error_msg = curl_error($curl);
+                Log::error('WhatsApp API Error: ' . $error_msg);
+            }
+
+            curl_close($curl);
+
+
+            return redirect()->route('anggota.pembayaran', ['snapToken' => $snapToken]);
+        } catch (\Exception $e) {
+            notify()->error('Terjadi kesalahan saat pendaftaran anggota: ' . $e->getMessage());
+            return redirect()->back()->withInput();
+        }
+    }
 
     public function store(Request $request)
     {
@@ -135,22 +367,30 @@ class AnggotaController extends Controller
 
         try {
             $kode_unik = rand(500, 999);
-            $biaya = 105000 + $kode_unik;
-            $today = now()->format('Ymd');
-
-            $lastOrder = AnggotaModel::where('order_id', 'like', "INV-{$today}-%")
-                ->orderByRaw("CAST(SUBSTRING_INDEX(order_id, '-', -1) AS UNSIGNED) DESC")
+            // Ambil biaya dari tabel biaya dengan keterangan 'Pendaftaran' dan tanggal berlaku
+            $today = now()->format('Y-m-d');
+            $biayaPendaftaran = \App\Models\BiayaModel::where('keterangan', 'Pendaftaran')
+                ->where(function ($q) use ($today) {
+                    $q->where(function ($q2) use ($today) {
+                        $q2->whereNull('berlaku_mulai')->orWhere('berlaku_mulai', '<=', $today);
+                    });
+                    $q->where(function ($q2) use ($today) {
+                        $q2->whereNull('berlaku_sampai')->orWhere('berlaku_sampai', '>=', $today);
+                    });
+                })
+                ->orderByDesc('berlaku_mulai')
                 ->first();
-
-            $nextNumber = 1;
-
-            if ($lastOrder) {
-                $parts = explode('-', $lastOrder->order_id);
-                $lastNumber = (int) end($parts);
-                $nextNumber = $lastNumber + 1;
+            if ($biayaPendaftaran) {
+                $biaya = (int)$biayaPendaftaran->nominal + $kode_unik;
+            } else {
+                $biaya = 105000 + $kode_unik; // fallback default
             }
 
-            $order_id = "INV-{$today}-{$nextNumber}";
+
+            $today = now()->format('Ymd');
+            // 4 digit random, leading zero
+            $randomNumber = str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
+            $order_id_mid = "INV-{$today}-{$randomNumber}";
 
             $user = User::create([
                 'email' => $request->email,
@@ -168,10 +408,10 @@ class AnggotaController extends Controller
                 'provinsi' => $request->provinsi,
                 'biaya' => $biaya,
                 'status_anggota' => 'pending',
-                'order_id' => $order_id,
+                'order_id' => $order_id_mid,
             ]);
 
-            $durationInMinutes = 30;
+            $durationInMinutes = 60;
 
             // Set your Merchant Server Key
             \Midtrans\Config::$serverKey = config('midtrans.serverKey');
@@ -182,10 +422,9 @@ class AnggotaController extends Controller
             // Set 3DS transaction for credit card to true
             \Midtrans\Config::$is3ds = config('midtrans.is3ds');
 
-
             $params = array(
                 'transaction_details' => array(
-                    'order_id' => $order_id,
+                    'order_id' => $order_id_mid,
                     'gross_amount' => $biaya,
                 ),
                 'customer_details' => array(
@@ -198,6 +437,7 @@ class AnggotaController extends Controller
                     'duration' => $durationInMinutes,
                 )
             );
+
 
             $snapToken = \Midtrans\Snap::getSnapToken($params);
 
@@ -339,14 +579,27 @@ _Salam,_
 
         // Eksekusi jika status transaksi expired
         if ($request->transaction_status === 'expired') {
-            $idUser = $anggota->id_user;
-
+            /* $idUser = $anggota->id_user;
             $anggota->delete();
             User::where('id_user', $idUser)->delete();
+            return response()->json(['message' => 'Order expired and deleted'], 200); */
 
-            // Jangan redirect dari callback Midtrans
-            // Balas saja status 200 OK
-            return response()->json(['message' => 'Order expired and deleted'], 200);
+            $idUser = $anggota->id_user;
+            $user = User::where('id_user', $idUser)->first();
+
+            // Pindahkan data ke tabel 'anggota_tmp'
+            DB::table('anggota_tmp')->insert((array) $anggota->attributesToArray());
+
+            // Pindahkan data ke tabel 'users_tmp'
+            DB::table('users_tmp')->insert((array) $user->attributesToArray());
+
+            // Hapus data dari tabel asli
+            //$anggota->delete();
+            $user->delete();
+
+            Log::info('Order expired, data moved to temporary tables', ['order_id' => $request->order_id, 'id_user' => $idUser]);
+
+            return response()->json(['message' => 'Order expired and data moved to temporary tables'], 200);
         }
 
         // Tambahkan logika lain untuk "capture", "settlement", dsb jika perlu
@@ -434,6 +687,31 @@ _Salam,_
             ->paginate(10);
 
         return view('admin_page.calonanggota.index', compact('calon'));
+    }
+
+    public function showAllExpiredAnggota(Request $request)
+    {
+        // $calon = AnggotaModel::where('status_anggota', 'pending')->paginate(10); // 10 = jumlah per halaman
+        //$user = Auth::user();
+        $expired = AnggotaExpiredModel::with('users_tmp')
+            ->where('anggota_tmp.status_anggota', 'pending') // Filter utama: wajib 'pending'
+            ->when($request->search, function ($query) use ($request) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('nama_anggota', 'like', '%' . $request->search . '%')
+                        ->orWhere('nip_nipppk', 'like', '%' . $request->search . '%')
+                        ->orWhere('no_hp', 'like', '%' . $request->search . '%')
+                        ->orWhere('email', 'like', '%' . $request->search . '%');
+                });
+            })
+            ->when($request->status_anggota, function ($query) use ($request) {
+                $query->where('status_anggota', $request->status_anggota);
+            })
+            ->join('users_tmp', 'anggota_tmp.id_user', '=', 'users_tmp.id_user')
+            ->where('anggota_tmp.status_anggota', '=', 'pending')
+            ->orderBy('anggota_tmp.nama_anggota', 'asc')
+            ->paginate(10);
+
+        return view('admin_page.expiredanggota.index', compact('expired'));
     }
 
     //import anggota
@@ -584,7 +862,7 @@ _Salam,_
         if ($idCardTersedia) {
             // Gunakan id_card dari no_anggota dan ambil 6 digit terakhir untuk no_urut
             $id_card = $idCardTersedia->id_card;
-            $no_urut = (int)substr($id_card, -6);
+            $no_urut = (int)substr($id_card, -5);
 
             // Hapus data id_card dari tabel no_anggota setelah digunakan
             $idCardTersedia->delete();
@@ -597,26 +875,13 @@ _Salam,_
             } else {
                 // Ambil 6 digit terakhir dari id_card terakhir dan +1
                 $last_id_card = $anggota_urut->id_card;
-                $last_no = (int)substr($last_id_card, -6);
+                $last_no = (int)substr($last_id_card, -5);
                 $no_urut = $last_no + 1;
             }
 
-            // Format ID Card (6 digit belakang)
-            if ($no_urut < 10) {
-                $id_card = '0000' . $no_urut;
-            } elseif ($no_urut < 100) {
-                $id_card = '000' . $no_urut;
-            } elseif ($no_urut < 1000) {
-                $id_card = '00' . $no_urut;
-            } elseif ($no_urut < 10000) {
-                $id_card = '0' . $no_urut;
-            } elseif ($no_urut < 100000) {
-                $id_card = '' . $no_urut;
-            } else {
-                $id_card = (string)$no_urut;
-            }
-
-            $id_card = '00119' . $id_card; // Tambahkan prefix
+            // Format ID Card: 10 digit (prefix 00119 + 5 digit no_urut, leading zero)
+            $id_card_padded = str_pad($no_urut, 5, '0', STR_PAD_LEFT);
+            $id_card = '00119' . $id_card_padded;
         }
 
         // Simpan ke data anggota
@@ -963,6 +1228,13 @@ _Salam,_
             ->unique()
             ->toArray();
 
+        $pendaftar_webinar = PendaftarExtModel::with('webinar')
+            ->where('email', $email)
+            ->where('no_hp', $no_hp)
+            ->get();
+
+        // dd($webinar_terdaftar);
+
         $status_anggota = DB::table('anggota')
             ->where('id_user', $user->id_user)
             ->value('status_anggota');
@@ -1004,12 +1276,12 @@ _Salam,_
             ->paginate(10);
 
         $webinar->getCollection()->transform(function ($item) {
-            $kode_unik = rand(100, 999);
+            $kode_unik = rand(500, 999);
             $item->biaya_unik = ($item->biaya ?? 0) + $kode_unik;
             return $item;
         });
 
-        return view('anggota_page.webinar.index', compact('webinar', 'webinar_terdaftar', 'biaya_tipe'));
+        return view('anggota_page.webinar.index', compact('webinar', 'webinar_terdaftar', 'biaya_tipe', 'pendaftar_webinar'));
     }
 
     public function uploadFilePendaftar($file, $path, $prefix = '')
@@ -1656,7 +1928,7 @@ Salam,
         if ($idCardTersedia) {
             // Gunakan id_card dari no_anggota dan ambil 6 digit terakhir untuk no_urut
             $id_card = $idCardTersedia->id_card;
-            $no_urut = (int)substr($id_card, -6);
+            $no_urut = (int)substr($id_card, -5);
 
             // Hapus data id_card dari tabel no_anggota setelah digunakan
             $idCardTersedia->delete();
@@ -1762,5 +2034,127 @@ Salam,
         // notify()->success('Anggota berhasil divalidasi dan notifikasi telah dikirim ke semua admin.');
         return redirect('/admin/calonanggota')->with('Validasi anggota berhasil dilakukan!');
         //return redirect()->back();
+    }
+
+    public function validasiExpired(Request $request, $id)
+    {
+
+        $idCardTersedia = NoAnggotaModel::orderBy('id_card', 'asc')->first();
+
+        if ($idCardTersedia) {
+            // Gunakan id_card dari no_anggota dan ambil 6 digit terakhir untuk no_urut
+            $id_card = $idCardTersedia->id_card;
+            $no_urut = (int)substr($id_card, -5);
+
+            // Hapus data id_card dari tabel no_anggota setelah digunakan
+            $idCardTersedia->delete();
+        } else {
+            // Jika tidak ada lagi id_card tersisa di tabel no_anggota
+            $anggota_urut = AnggotaModel::orderBy('id_card', 'desc')->first();
+            $last_id_card = $anggota_urut->id_card;
+            $last_no = (int)substr($last_id_card, -5);
+            $no_urut = $last_no + 1;
+
+            // Pastikan nomor urut selalu 5 digit dengan nol di depan menggunakan str_pad()
+            // Ini menggantikan seluruh blok if/elseif sebelumnya
+            $id_card_padded = str_pad($no_urut, 5, '0', STR_PAD_LEFT);
+            $id_card = '00119' . $id_card_padded;
+        }
+
+
+        // Simpan ke data anggota expired
+        $anggota_expired = AnggotaExpiredModel::findOrFail($id);
+        $anggota_expired->status_anggota = $request->status_anggota;
+        $anggota_expired->no_urut = $no_urut;
+        $anggota_expired->id_card = $id_card;
+        $anggota_expired->save();
+
+        $anggota_user_expired = UserExpired::findOrFail($anggota_expired->id_user);
+        $iduser = $anggota_expired->id_user;
+
+        // Jika status_anggota diaktifkan, pindahkan data ke tabel utama
+        if ($request->status_anggota === 'aktif') {
+            // Pindahkan UserExpired ke User
+            $userData = $anggota_user_expired->toArray();
+            unset($userData['id']); // hapus id auto increment jika ada
+            unset($userData['created_at'], $userData['updated_at']);
+            $userBaru = \App\Models\User::create($userData);
+
+            // Pindahkan AnggotaExpiredModel ke AnggotaModel
+            $anggotaData = $anggota_expired->toArray();
+            unset($anggotaData['id']);
+            unset($anggotaData['created_at'], $anggotaData['updated_at']);
+            $anggotaData['id_user'] = $userBaru->id_user; // pastikan id_user baru
+            $anggotaBaru = \App\Models\AnggotaModel::create($anggotaData);
+
+            // Hapus data dari tabel expired
+            $anggota_user_expired->delete();
+            $anggota_expired->delete();
+
+            // Gunakan data baru untuk notifikasi
+            $anggota = $anggotaBaru;
+            $anggota_user = $userBaru;
+        } else {
+            // Gunakan data expired untuk notifikasi dan penghapusan jika status tidak aktif
+            $anggota = $anggota_expired;
+            $anggota_user = $anggota_user_expired;
+        }
+
+        // Pesan untuk dikirim
+        if ($request->status_anggota === 'aktif') {
+            $message = "Halo " . $anggota->nama_anggota . " 👋,
+
+Selamat menjadi bagian dari ADAKSI! Akun Anda di sistem telah berhasil diaktifkan oleh admin. Berikut adalah detail akun Anda:
+    
+🔑 *Username:* " . $anggota_user->email . "
+🔒 *Password:* " . $anggota_user->password_temporary . "
+    
+Demi keamanan akun, sangat disarankan untuk segera *mengganti password* Anda setelah login pertama.
+    
+📝 Silakan login melalui link berikut:
+base_url: " . config('app.url') . "
+Silakan login menggunakan akun Anda.
+    
+✌️Serta upload pas photo untuk download KTA di akun Anda.
+
+Terima kasih telah bergabung bersama ADAKSI. Mari bersama-sama berjuang untuk Indonesia Emas! 🇮🇩✨";
+
+            // Kirim pesan ke user (moved inside the if block)
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => 'https://api.fonnte.com/send',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => array(
+                    'target' => $anggota_user->no_hp, // pastikan format nomor sudah internasional (62xxxxx)
+                    'message' => $message,
+                ),
+                CURLOPT_HTTPHEADER => array(
+                    'Authorization: 5ef8QqtZQtmcBLfiWth5'
+                ),
+            ));
+
+            $response = curl_exec($curl);
+            if (curl_errno($curl)) {
+                $error_msg = curl_error($curl);
+                // Jika error, log atau tampilkan
+                Log::error('WhatsApp API Error: ' . $error_msg);
+            }
+            curl_close($curl);
+
+            // mengubah password temporary menjadi null di tabel user jika status aktif
+            $anggota_user->password_temporary = null;
+            $anggota_user->save();
+        } else {
+            AnggotaExpiredModel::where('id_user', $anggota->id_user)->delete();
+            UserExpired::where('id_user', $anggota->id_user)->delete();
+        }
+
+        return redirect('/admin/expiredanggota')->with('Validasi anggota berhasil dilakukan!');
     }
 }

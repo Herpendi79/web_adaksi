@@ -121,6 +121,13 @@ Route::prefix('anggota')
         Route::post('/daftar', 'store')->name('anggota.store');
     });
 
+    // Route untuk anggota tetap dengan ambil order_id dari tabel
+Route::prefix('anggota')
+    ->controller(AnggotaController::class)
+    ->group(function () {
+        Route::post('/daftar-anggota-tetap', 'store')->name('anggota.store_anggota_tetap');
+    });
+
 
 
 Route::get('/anggota/pembayaran/{snapToken}', function ($snapToken) {

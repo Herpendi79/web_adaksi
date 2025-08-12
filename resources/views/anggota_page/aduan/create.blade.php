@@ -40,15 +40,20 @@
                                 </div>
                             @enderror
                         </div>
+                        <!-- Tagify CSS & JS CDN -->
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
+                        <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
                                 var input = document.querySelector('#kategori');
-                                new Tagify(input, {
-                                    whitelist: [],
-                                    dropdown: {
-                                        enabled: 0 // set to 1+ if you want dropdown suggestions
-                                    }
-                                });
+                                if (window.Tagify && input) {
+                                    new Tagify(input, {
+                                        whitelist: [],
+                                        dropdown: {
+                                            enabled: 0 // set to 1+ if you want dropdown suggestions
+                                        }
+                                    });
+                                }
                             });
                         </script>
 
